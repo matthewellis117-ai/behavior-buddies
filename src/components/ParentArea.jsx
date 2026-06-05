@@ -9,10 +9,12 @@ export default function ParentArea({ child, onBack, onDeleted }) {
   const [name, setName] = useState(child?.name || '')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
-  const [paidNote, setPaidNote] = useState(false)
+  const [paidNote, setPaidNote] = useState(0)
 
-  const preview = child ? coinsFromWeek(child.events, weekKey()) : 0
-  const alreadyPaid = child ? (child.paidWeeks || []).includes(weekKey()) : false
+  const wk = weekKey()
+  const earned = child ? coinsFromWeek(child.events, wk) : 0
+  const paidSoFar = child ? (child.paidByWeek || {})[wk] || 0 : 0
+  const unpaid = Math.max(0, earned - paidSoFar)
 
   return (
     <div className="max-w-lg mx-auto px-4 py-5">
@@ -39,31 +41,43 @@ export default function ParentArea({ child, onBack, onDeleted }) {
           <div className="bg-cream rounded-2xl p-3 mb-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-display font-extrabold">End the week now</div>
+                <div className="font-display font-extrabold">Pay out coins</div>
                 <div className="text-xs text-ink/55 font-semibold">
-                  Bank this week's points as coins{' '}
-                  <span className="inline-flex items-center gap-0.5 font-extrabold text-sunnyDark">
-                    (<Coin size={14} />
-                    {preview})
-                  </span>
+                  {unpaid > 0 ? (
+                    <span>
+                      Bank this week's new points{' '}
+                      <span className="inline-flex items-center gap-0.5 font-extrabold text-sunnyDark">
+                        (<Coin size={14} />
+                        {unpaid})
+                      </span>
+                    </span>
+                  ) : (
+                    <span>Nothing new to pay out right now</span>
+                  )}
                 </div>
               </div>
               <button
                 className="btn3d py-2 px-4 text-sm"
                 style={btnVars('sunny')}
-                disabled={alreadyPaid}
+                disabled={unpaid === 0}
                 onClick={() => {
-                  endWeekNow(child.id)
-                  setPaidNote(true)
-                  setTimeout(() => setPaidNote(false), 2500)
+                  const added = endWeekNow(child.id)
+                  if (added > 0) {
+                    setPaidNote(added)
+                    setTimeout(() => setPaidNote(0), 2500)
+                  }
                 }}
               >
-                {alreadyPaid ? 'Paid \u2713' : 'Pay out'}
+                Pay out
               </button>
             </div>
-            {paidNote && <p className="text-grassDark font-bold text-sm mt-2">Coins added! 🎉</p>}
+            {paidNote > 0 && (
+              <p className="text-grassDark font-bold text-sm mt-2">
+                Added {paidNote} {paidNote === 1 ? 'coin' : 'coins'}! 🎉
+              </p>
+            )}
             <p className="text-[11px] text-ink/45 font-semibold mt-2">
-              Coins also bank automatically every Monday. Use this only if you run your week to a different day.
+              Coins also bank on their own every Monday. You can pay out as often as you like, even more than once a day. Each buddy only ever banks coins they have newly earned.
             </p>
           </div>
 

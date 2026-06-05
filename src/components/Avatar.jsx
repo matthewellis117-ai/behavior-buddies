@@ -24,13 +24,18 @@ function HairBack({ style, c }) {
   const d = shade(c, 0.18)
   switch (style) {
     case 'long':
-      return <path d="M58 96 C46 130 50 188 64 214 L176 214 C190 188 194 130 182 96 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
+      return <path d="M54 92 C40 132 46 196 64 220 L176 220 C194 196 200 132 186 92 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
     case 'bob':
-      return <path d="M56 92 C48 120 52 158 64 172 L176 172 C188 158 192 120 184 92 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
+      return <path d="M56 94 C48 124 52 162 66 178 L174 178 C188 162 192 124 184 94 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
     case 'ponytail':
-      return <path d="M168 96 C204 104 206 150 188 176 C182 150 176 128 160 120 Z" fill={d} stroke={OUTLINE} strokeWidth="2" />
+      return (
+        <g>
+          <path d="M168 98 C208 106 212 158 190 188 C186 158 176 132 156 122 Z" fill={d} stroke={OUTLINE} strokeWidth="2" />
+          <ellipse cx="176" cy="102" rx="13" ry="11" fill={c} stroke={OUTLINE} strokeWidth="2" />
+        </g>
+      )
     case 'afro':
-      return <circle cx="120" cy="96" r="80" fill={c} stroke={OUTLINE} strokeWidth="2" />
+      return <circle cx="120" cy="104" r="84" fill={c} stroke={OUTLINE} strokeWidth="2" />
     default:
       return null
   }
@@ -40,51 +45,53 @@ function HairFront({ style, c }) {
   if (style === 'bald') return null
   const d = shade(c, 0.16)
   const common = { fill: c, stroke: OUTLINE, strokeWidth: 2 }
+  // A full, lower hairline that frames the face instead of perching on the crown.
+  const FULL = 'M54 104 C54 46 186 46 186 104 C176 90 150 84 120 84 C90 84 64 90 54 104 Z'
   switch (style) {
     case 'buzz':
-      return <path d="M60 96 C66 56 174 56 180 96 C168 80 72 80 60 96 Z" {...common} />
+      return <path d="M58 100 C62 54 178 54 182 100 C168 86 150 82 120 82 C90 82 72 86 58 100 Z" {...common} />
     case 'short':
-      return <path d="M58 104 C58 50 182 50 182 104 C168 78 150 70 120 70 C90 70 72 78 58 104 Z" {...common} />
+      return <path d={FULL} {...common} />
     case 'swoosh':
       return (
         <g>
-          <path d="M58 102 C58 50 182 50 182 100 C176 80 150 72 120 72 C112 72 60 70 58 102 Z" {...common} />
-          <path d="M118 70 C150 66 178 78 180 100 C150 78 120 96 96 96 C108 78 110 72 118 70 Z" fill={d} />
+          <path d={FULL} {...common} />
+          <path d="M112 86 C150 80 182 92 184 106 C150 86 120 102 92 102 C104 88 106 87 112 86 Z" fill={d} />
         </g>
       )
     case 'bob':
-      return <path d="M56 100 C56 52 184 52 184 100 C168 78 150 70 120 70 C90 70 72 78 56 100 Z" {...common} />
+      return <path d={FULL} {...common} />
     case 'ponytail':
-      return <path d="M58 100 C58 52 182 52 182 100 C168 76 150 70 120 70 C90 70 72 78 58 100 Z" {...common} />
+      return <path d={FULL} {...common} />
     case 'curly':
       return (
         <g {...common}>
-          <circle cx="72" cy="86" r="20" /><circle cx="98" cy="70" r="22" />
-          <circle cx="120" cy="64" r="22" /><circle cx="144" cy="70" r="22" />
-          <circle cx="168" cy="86" r="20" /><circle cx="60" cy="104" r="16" />
-          <circle cx="180" cy="104" r="16" />
+          <circle cx="70" cy="92" r="22" /><circle cx="96" cy="74" r="24" />
+          <circle cx="120" cy="68" r="24" /><circle cx="144" cy="74" r="24" />
+          <circle cx="170" cy="92" r="22" /><circle cx="58" cy="108" r="17" />
+          <circle cx="182" cy="108" r="17" />
         </g>
       )
     case 'afro':
-      return null
+      return <path d="M52 106 C44 50 196 50 188 106 C176 88 150 82 120 82 C90 82 64 88 52 106 Z" {...common} />
     case 'bun':
       return (
         <g>
-          <circle cx="120" cy="46" r="20" {...common} />
-          <path d="M58 100 C58 54 182 54 182 100 C168 78 150 72 120 72 C90 72 72 78 58 100 Z" {...common} />
+          <circle cx="120" cy="48" r="18" {...common} />
+          <path d={FULL} {...common} />
         </g>
       )
     case 'long':
-      return <path d="M56 102 C56 50 184 50 184 102 C168 78 150 70 120 70 C90 70 72 78 56 102 Z" {...common} />
+      return <path d={FULL} {...common} />
     case 'spiky':
       return (
         <path
-          d="M58 100 L74 56 L92 90 L108 50 L122 90 L138 50 L154 92 L172 58 L182 100 C168 80 150 74 120 74 C90 74 72 80 58 100 Z"
+          d="M56 104 L72 56 L90 96 L106 50 L122 96 L138 50 L154 96 L170 56 L184 104 C172 88 150 82 120 82 C90 82 68 88 56 104 Z"
           {...common}
         />
       )
     default:
-      return null
+      return <path d={FULL} {...common} />
   }
 }
 
@@ -196,45 +203,52 @@ function Necklace({ style }) {
 function Hat({ style }) {
   if (!style) return null
   switch (style) {
+    case 'headband':
+      return (
+        <g stroke={OUTLINE} strokeWidth="2">
+          <path d="M56 100 C60 76 180 76 184 100 C184 90 176 88 120 88 C64 88 56 90 56 100 Z" fill="#3fd6a8" />
+          <circle cx="120" cy="83" r="6" fill="#28b48a" />
+        </g>
+      )
     case 'cap':
       return (
         <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M60 84 C66 50 174 50 180 84 L60 84 Z" fill="#ff4b4b" />
-          <path d="M58 84 C40 84 36 98 40 102 L120 96 L120 84 Z" fill="#e23a3a" />
-          <circle cx="120" cy="52" r="5" fill="#e23a3a" />
+          <path d="M62 90 C62 48 178 48 178 90 C150 80 90 80 62 90 Z" fill="#ff4b4b" />
+          <path d="M60 90 C34 88 26 100 32 106 C72 96 112 96 126 92 L126 84 Z" fill="#e23a3a" />
+          <circle cx="120" cy="50" r="5" fill="#e23a3a" />
         </g>
       )
     case 'beanie':
       return (
         <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M58 90 C58 48 182 48 182 90 Z" fill="#1cb0f6" />
-          <rect x="56" y="84" width="128" height="14" rx="7" fill="#1899d6" />
-          <circle cx="120" cy="40" r="8" fill="#e8f4ff" />
+          <path d="M60 88 C60 46 180 46 180 88 Z" fill="#1cb0f6" />
+          <path d="M56 82 C80 92 160 92 184 82 L184 86 C160 102 80 102 56 86 Z" fill="#1899d6" />
+          <circle cx="120" cy="42" r="8" fill="#e8f4ff" />
         </g>
       )
     case 'party':
       return (
         <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M120 18 L150 86 L90 86 Z" fill="#ce82ff" />
-          <circle cx="120" cy="18" r="7" fill="#ffc800" />
-          <circle cx="106" cy="60" r="4" fill="#fff" /><circle cx="132" cy="52" r="4" fill="#fff" />
+          <path d="M120 14 L152 90 L88 90 Z" fill="#ce82ff" />
+          <circle cx="120" cy="14" r="7" fill="#ffc800" />
+          <circle cx="108" cy="62" r="4" fill="#fff" /><circle cx="134" cy="52" r="4" fill="#fff" />
         </g>
       )
     case 'wizard':
       return (
         <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M120 8 C108 40 96 78 90 90 L150 90 C144 78 132 40 120 8 Z" fill="#6b4fbb" />
-          <path d="M70 90 L170 90 L170 100 L70 100 Z" fill="#5a3fa0" />
-          <path d="M118 36 l4 8 8 2 -8 4 -2 8 -4 -8 -8 -2 8 -4 Z" fill="#ffd23f" />
+          <path d="M120 6 C108 40 96 80 88 92 L152 92 C144 80 132 40 120 6 Z" fill="#6b4fbb" />
+          <path d="M66 92 L174 92 L174 102 L66 102 Z" fill="#5a3fa0" />
+          <path d="M118 38 l4 8 8 2 -8 4 -2 8 -4 -8 -8 -2 8 -4 Z" fill="#ffd23f" />
         </g>
       )
     case 'flowers':
       return (
         <g stroke={OUTLINE} strokeWidth="1.5">
-          {[64, 90, 120, 150, 176].map((x, i) => (
+          {[60, 88, 120, 152, 180].map((x, i) => (
             <g key={i}>
-              <circle cx={x} cy={76 - (i % 2) * 6} r="9" fill={['#ff86d0', '#ffc800', '#ff7a7a', '#ce82ff', '#58cc02'][i]} />
-              <circle cx={x} cy={76 - (i % 2) * 6} r="3.5" fill="#fff" />
+              <circle cx={x} cy={82 - (i % 2) * 6} r="10" fill={['#ff86d0', '#ffc800', '#ff7a7a', '#ce82ff', '#58cc02'][i]} />
+              <circle cx={x} cy={82 - (i % 2) * 6} r="3.5" fill="#fff" />
             </g>
           ))}
         </g>
@@ -242,9 +256,9 @@ function Hat({ style }) {
     case 'crown':
       return (
         <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M70 86 L70 52 L92 70 L120 44 L148 70 L170 52 L170 86 Z" fill="#ffc800" />
-          <circle cx="120" cy="58" r="5" fill="#ff4b4b" />
-          <circle cx="86" cy="66" r="4" fill="#1cb0f6" /><circle cx="154" cy="66" r="4" fill="#1cb0f6" />
+          <path d="M68 90 L68 54 L92 72 L120 46 L148 72 L172 54 L172 90 Z" fill="#ffc800" />
+          <circle cx="120" cy="60" r="5" fill="#ff4b4b" />
+          <circle cx="86" cy="68" r="4" fill="#1cb0f6" /><circle cx="154" cy="68" r="4" fill="#1cb0f6" />
         </g>
       )
     case 'halo':
@@ -297,8 +311,12 @@ export default function Avatar({ config = {}, size = 200, ring = false, classNam
       <ellipse cx="120" cy="116" rx="64" ry="66" fill={skin} stroke={OUTLINE} strokeWidth="2" />
 
       {/* cheeks */}
-      <circle cx="82" cy="138" r="9" fill="#ff9aa2" opacity="0.5" />
-      <circle cx="158" cy="138" r="9" fill="#ff9aa2" opacity="0.5" />
+      {config.cheeks !== false && (
+        <g>
+          <circle cx="82" cy="138" r="9" fill="#ff9aa2" opacity="0.5" />
+          <circle cx="158" cy="138" r="9" fill="#ff9aa2" opacity="0.5" />
+        </g>
+      )}
 
       {/* face */}
       <Eyes style={config.eyes || 'happy'} />
