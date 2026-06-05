@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { useStore } from '../lib/store.jsx'
+import { useStore, DEFAULT_CONSEQUENCE } from '../lib/store.jsx'
 import { coinsFromWeek, weekKey } from '../lib/economy.js'
 import { Coin, btnVars } from './ui.jsx'
 
 export default function ParentArea({ child, onBack, onDeleted }) {
-  const { state, setPin, endWeekNow, renameChild, removeChild, resetAll } = useStore()
+  const { state, setPin, setConsequence, endWeekNow, renameChild, removeChild, resetAll } = useStore()
   const [pinInput, setPinInput] = useState(state.settings.pin || '')
   const [name, setName] = useState(child?.name || '')
+  const [warn, setWarn] = useState(state.settings.consequence ?? DEFAULT_CONSEQUENCE)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
   const [paidNote, setPaidNote] = useState(0)
@@ -138,6 +139,23 @@ export default function ParentArea({ child, onBack, onDeleted }) {
             </button>
           )}
         </div>
+      </div>
+
+      <div className="card p-4 mb-4">
+        <h3 className="font-display font-extrabold mb-1">Warning message</h3>
+        <p className="text-xs text-ink/55 font-semibold mb-2">
+          Shown to a child when a week has more sad faces than happy ones. Put the consequence in your own words. This should be rare.
+        </p>
+        <input
+          value={warn}
+          maxLength={80}
+          onChange={(e) => setWarn(e.target.value)}
+          onBlur={() => setConsequence(warn.trim() || DEFAULT_CONSEQUENCE)}
+          className="w-full font-bold rounded-2xl py-2 px-3 border-4 border-sky/30 outline-none focus:border-sky"
+        />
+        <p className="text-[11px] text-ink/45 font-semibold mt-2">
+          The child will read: "If the week stays like this, {warn.trim() || DEFAULT_CONSEQUENCE}."
+        </p>
       </div>
 
       <div className="card p-4">

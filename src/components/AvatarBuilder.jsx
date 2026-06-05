@@ -54,7 +54,7 @@ export default function AvatarBuilder({ value, onChange, owned = [], showItems =
 
   const ownsFunHair = owned.includes('haircolour')
   const ownedItems = REWARDS.filter((r) => r.type === 'avatar' && owned.includes(r.id))
-  const slots = ['hat', 'glasses', 'earrings', 'necklace']
+  const slots = ['hat', 'glasses', 'accessory', 'earrings', 'necklace']
   const slotItems = (slot) => ownedItems.filter((r) => r.field === slot)
   const hasItems = ownedItems.some((r) => slots.includes(r.field))
 
@@ -138,7 +138,7 @@ export default function AvatarBuilder({ value, onChange, owned = [], showItems =
           {slots.map((slot) => {
             const items = slotItems(slot)
             if (!items.length) return null
-            const label = { hat: 'Hats', glasses: 'Glasses', earrings: 'Earrings', necklace: 'Necklaces' }[slot]
+            const label = { hat: 'Hats', glasses: 'Glasses', accessory: 'Hair bow', earrings: 'Earrings', necklace: 'Necklaces' }[slot]
             return (
               <div key={slot}>
                 <div className="font-display font-bold text-ink/60 text-sm mb-1">{label}</div>
@@ -167,5 +167,5 @@ export default function AvatarBuilder({ value, onChange, owned = [], showItems =
 
 // keep equipped items when shuffling the face
 function pickItems(v) {
-  return { hat: v.hat, glasses: v.glasses, earrings: v.earrings, necklace: v.necklace, shirt: v.shirt, cheeks: v.cheeks }
+  return { hat: v.hat, glasses: v.glasses, accessory: v.accessory, earrings: v.earrings, necklace: v.necklace, shirt: v.shirt, cheeks: v.cheeks }
 }

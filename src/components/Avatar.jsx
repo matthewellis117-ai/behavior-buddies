@@ -45,53 +45,57 @@ function HairFront({ style, c }) {
   if (style === 'bald') return null
   const d = shade(c, 0.16)
   const common = { fill: c, stroke: OUTLINE, strokeWidth: 2 }
-  // A full, lower hairline that frames the face instead of perching on the crown.
-  const FULL = 'M54 104 C54 46 186 46 186 104 C176 90 150 84 120 84 C90 84 64 90 54 104 Z'
+  // A SOLID cap: outer edge sweeps right over the top of the head (crown at y46,
+  // above the head top at y50) and the inner edge is the hairline across the
+  // forehead. The area between is filled, so the whole crown is covered.
+  const CAP = 'M52 118 C48 62 92 46 120 46 C148 46 192 62 188 118 C176 102 150 94 120 94 C90 94 64 102 52 118 Z'
   switch (style) {
     case 'buzz':
-      return <path d="M58 100 C62 54 178 54 182 100 C168 86 150 82 120 82 C90 82 72 86 58 100 Z" {...common} />
+      // Tighter to the scalp, but still covers the crown.
+      return <path d="M56 114 C54 72 92 58 120 58 C148 58 186 72 184 114 C172 100 150 92 120 92 C90 92 68 100 56 114 Z" {...common} />
     case 'short':
-      return <path d={FULL} {...common} />
+      return <path d={CAP} {...common} />
     case 'swoosh':
       return (
         <g>
-          <path d={FULL} {...common} />
-          <path d="M112 86 C150 80 182 92 184 106 C150 86 120 102 92 102 C104 88 106 87 112 86 Z" fill={d} />
+          <path d={CAP} {...common} />
+          <path d="M120 94 C152 86 184 92 188 112 C150 90 120 108 90 104 C102 96 110 95 120 94 Z" fill={d} />
         </g>
       )
     case 'bob':
-      return <path d={FULL} {...common} />
+      return <path d={CAP} {...common} />
     case 'ponytail':
-      return <path d={FULL} {...common} />
+      return <path d={CAP} {...common} />
     case 'curly':
       return (
         <g {...common}>
-          <circle cx="70" cy="92" r="22" /><circle cx="96" cy="74" r="24" />
-          <circle cx="120" cy="68" r="24" /><circle cx="144" cy="74" r="24" />
-          <circle cx="170" cy="92" r="22" /><circle cx="58" cy="108" r="17" />
-          <circle cx="182" cy="108" r="17" />
+          <circle cx="70" cy="90" r="24" /><circle cx="96" cy="70" r="26" />
+          <circle cx="120" cy="62" r="26" /><circle cx="144" cy="70" r="26" />
+          <circle cx="170" cy="90" r="24" /><circle cx="58" cy="106" r="18" />
+          <circle cx="182" cy="106" r="18" />
+          <circle cx="120" cy="96" r="26" />
         </g>
       )
     case 'afro':
-      return <path d="M52 106 C44 50 196 50 188 106 C176 88 150 82 120 82 C90 82 64 88 52 106 Z" {...common} />
+      return <path d="M50 118 C44 50 196 50 190 118 C178 96 150 88 120 88 C90 88 62 96 50 118 Z" {...common} />
     case 'bun':
       return (
         <g>
-          <circle cx="120" cy="48" r="18" {...common} />
-          <path d={FULL} {...common} />
+          <circle cx="120" cy="44" r="18" {...common} />
+          <path d={CAP} {...common} />
         </g>
       )
     case 'long':
-      return <path d={FULL} {...common} />
+      return <path d={CAP} {...common} />
     case 'spiky':
       return (
-        <path
-          d="M56 104 L72 56 L90 96 L106 50 L122 96 L138 50 L154 96 L170 56 L184 104 C172 88 150 82 120 82 C90 82 68 88 56 104 Z"
-          {...common}
-        />
+        <g {...common}>
+          <path d={CAP} />
+          <path d="M62 58 L78 28 L94 56 L108 24 L122 56 L136 24 L150 56 L166 28 L180 58 Z" />
+        </g>
       )
     default:
-      return <path d={FULL} {...common} />
+      return <path d={CAP} {...common} />
   }
 }
 
@@ -178,9 +182,24 @@ function Glasses({ style }) {
 function Earrings({ style }) {
   if (!style) return null
   return (
-    <g>
-      <circle cx="58" cy="138" r="5" fill="#ffd23f" stroke={OUTLINE} strokeWidth="1.5" />
-      <circle cx="182" cy="138" r="5" fill="#ffd23f" stroke={OUTLINE} strokeWidth="1.5" />
+    <g stroke={OUTLINE} strokeWidth="1.5">
+      <circle cx="61" cy="135" r="5" fill="#ffd23f" />
+      <circle cx="179" cy="135" r="5" fill="#ffd23f" />
+      <circle cx="61" cy="134" r="2" fill="#fff7cf" stroke="none" />
+      <circle cx="179" cy="134" r="2" fill="#fff7cf" stroke="none" />
+    </g>
+  )
+}
+
+function Accessory({ style }) {
+  if (style !== 'bow') return null
+  const px = 150
+  const py = 74
+  return (
+    <g stroke={OUTLINE} strokeWidth="2">
+      <path d={`M${px} ${py} L${px - 18} ${py - 12} L${px - 18} ${py + 12} Z`} fill="#ff86d0" />
+      <path d={`M${px} ${py} L${px + 18} ${py - 12} L${px + 18} ${py + 12} Z`} fill="#ff86d0" />
+      <circle cx={px} cy={py} r="6" fill="#ff5fbf" />
     </g>
   )
 }
@@ -305,7 +324,6 @@ export default function Avatar({ config = {}, size = 200, ring = false, classNam
       {/* ears */}
       <circle cx="60" cy="120" r="13" fill={skin} stroke={OUTLINE} strokeWidth="2" />
       <circle cx="180" cy="120" r="13" fill={skin} stroke={OUTLINE} strokeWidth="2" />
-      <Earrings style={config.earrings} />
 
       {/* head */}
       <ellipse cx="120" cy="116" rx="64" ry="66" fill={skin} stroke={OUTLINE} strokeWidth="2" />
@@ -324,8 +342,12 @@ export default function Avatar({ config = {}, size = 200, ring = false, classNam
       <Mouth style={config.mouth || 'smile'} />
       <Glasses style={config.glasses} />
 
-      {/* hair in front + hat on top */}
+      {/* earrings sit on the lobes, on top of the head */}
+      <Earrings style={config.earrings} />
+
+      {/* hair in front + bow + hat on top */}
       <HairFront style={hairStyle} c={hair} />
+      <Accessory style={config.accessory} />
       <Hat style={config.hat} />
 
       {/* necklace sits over the shirt */}

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Avatar from './Avatar.jsx'
 import AwardModal from './AwardModal.jsx'
-import { useStore } from '../lib/store.jsx'
+import { useStore, DEFAULT_CONSEQUENCE } from '../lib/store.jsx'
 import { behaviourById } from '../data/behaviours.js'
 import { rewardById } from '../data/rewards.js'
 import { liveTotals, coinsFromWeek, weekKey } from '../lib/economy.js'
@@ -42,6 +42,20 @@ export default function ChildHome({ child, onBack, onShop, onSummary, onDressUp,
         </button>
         <CoinPill amount={child.coins} />
       </div>
+
+      {t.points < 0 && (
+        <div className="card p-4 mb-4" style={{ background: '#fff1f0', border: '2px solid #ffd0cb' }}>
+          <div className="flex items-start gap-3">
+            <span className="text-3xl leading-none">{'\u26A0\uFE0F'}</span>
+            <div>
+              <h3 className="font-display font-extrabold text-coral leading-tight">Uh oh, a tricky week so far</h3>
+              <p className="text-sm font-semibold text-ink/70 mt-1">
+                There have been more sad faces than happy ones. If the week stays like this, {state.settings.consequence || DEFAULT_CONSEQUENCE}. You can still turn it around. Earn some happy faces to get back to the good side!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="card p-5 text-center mb-4">
         <div className="flex justify-center mb-2">
