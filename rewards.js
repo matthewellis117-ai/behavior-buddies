@@ -1,149 +1,103 @@
-import { useState } from 'react'
-import Avatar from './Avatar.jsx'
-import AwardModal from './AwardModal.jsx'
-import { useStore } from '../lib/store.jsx'
-import { behaviourById } from '../data/behaviours.js'
-import { rewardById } from '../data/rewards.js'
-import { liveTotals, coinsFromWeek, weekKey } from '../lib/economy.js'
-import { Coin, CoinPill, Confetti, btnVars, PinGate } from './ui.jsx'
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-export default function ChildHome({ child, onBack, onShop, onSummary, onDressUp, onParent }) {
-  const { award, undoLast, redeem, state } = useStore()
-  const [showAward, setShowAward] = useState(false)
-  const [gate, setGate] = useState(false)
-  const [confetti, setConfetti] = useState(false)
-
-  const t = liveTotals(child)
-  const previewCoins = coinsFromWeek(child.events, weekKey())
-  const recent = [...child.events].sort((a, b) => b.at - a.at).slice(0, 5)
-  const pending = child.purchases.filter((p) => !p.redeemed)
-
-  const doAward = (behaviourId) => {
-    award(child.id, behaviourId)
-    setShowAward(false)
-    const b = behaviourById(behaviourId)
-    if (b && b.points > 0) {
-      setConfetti(true)
-      setTimeout(() => setConfetti(false), 1400)
-    }
-  }
-
-  const askAward = () => {
-    if (state.settings.pin) setGate(true)
-    else setShowAward(true)
-  }
-
-  return (
-    <div className="max-w-xl mx-auto px-4 py-5">
-      <Confetti run={confetti} />
-      <div className="flex items-center justify-between mb-3">
-        <button className="btn-ghost py-2 px-4" onClick={onBack}>
-          {'\u2190'} Home
-        </button>
-        <CoinPill amount={child.coins} />
-      </div>
-
-      <div className="card p-5 text-center mb-4">
-        <div className="flex justify-center mb-2">
-          <Avatar config={child.avatar} size={170} ring className="animate-floaty" />
-        </div>
-        <h1 className="font-display text-3xl font-extrabold">{child.name}</h1>
-
-        <div className="grid grid-cols-3 gap-2 mt-4">
-          <Mini label="Happy" value={t.happy} emoji={'\u{1F600}'} colour="text-grassDark" />
-          <Mini label="Sad" value={t.sad} emoji={'\u{1F61E}'} colour="text-coral" />
-          <Mini label="Coins at payday" value={previewCoins} coin colour="text-sunnyDark" />
-        </div>
-
-        <button className="btn3d w-full mt-5 text-xl py-4" style={btnVars('grass')} onClick={askAward}>
-          {'\u2728'} Give a face
-        </button>
-        <div className="grid grid-cols-3 gap-2 mt-2">
-          <button className="btn3d py-3" style={btnVars('sunny')} onClick={onShop}>
-            {'\u{1F6D2}'} Shop
-          </button>
-          <button className="btn3d py-3" style={btnVars('grape')} onClick={onDressUp}>
-            {'\u{1F457}'} Dress up
-          </button>
-          <button className="btn3d py-3" style={btnVars('sky')} onClick={onSummary}>
-            {'\u{1F4CA}'} Week
-          </button>
-        </div>
-      </div>
-
-      {pending.length > 0 && (
-        <div className="card p-4 mb-4">
-          <h3 className="font-display font-extrabold mb-2">{'\u{1F381}'} Treats to enjoy</h3>
-          <div className="space-y-2">
-            {pending.map((p) => {
-              const r = rewardById(p.reward)
-              return (
-                <div key={p.id} className="flex items-center gap-2 bg-cream rounded-2xl p-2">
-                  <span className="text-2xl">{r?.emoji}</span>
-                  <span className="font-bold flex-1">{r?.name}</span>
-                  <button className="btn-ghost py-1 px-3 text-sm" onClick={() => redeem(child.id, p.id)}>
-                    Mark as given
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {recent.length > 0 && (
-        <div className="card p-4 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-display font-extrabold">Latest faces</h3>
-            <button className="btn-ghost py-1 px-3 text-sm" onClick={() => undoLast(child.id)}>
-              {'\u21A9'} Undo last
-            </button>
-          </div>
-          <div className="space-y-1.5">
-            {recent.map((e) => {
-              const b = behaviourById(e.behaviour)
-              if (!b) return null
-              return (
-                <div key={e.id} className="flex items-center gap-2">
-                  <span className="text-xl">{b.emoji}</span>
-                  <span className="font-bold flex-1">{b.label}</span>
-                  <span className={`font-display font-extrabold ${b.points >= 0 ? 'text-grassDark' : 'text-coral'}`}>
-                    {b.points > 0 ? `+${b.points}` : b.points}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      <button className="btn-ghost w-full text-sm" onClick={onParent}>
-        {'\u2699\uFE0F'} Grown-up settings
-      </button>
-
-      {showAward && <AwardModal childName={child.name} onAward={doAward} onClose={() => setShowAward(false)} />}
-      {gate && (
-        <PinGate
-          pin={state.settings.pin}
-          onPass={() => {
-            setGate(false)
-            setShowAward(true)
-          }}
-          onClose={() => setGate(false)}
-        />
-      )}
-    </div>
-  )
+:root {
+  color-scheme: light;
 }
 
-function Mini({ label, value, emoji, coin, colour }) {
-  return (
-    <div className="bg-cream rounded-2xl py-3">
-      <div className={`font-display text-2xl font-extrabold ${colour} flex items-center justify-center gap-1`}>
-        {coin ? <Coin size={20} /> : <span className="text-xl">{emoji}</span>}
-        {value}
-      </div>
-      <div className="text-[11px] font-bold text-ink/50 leading-tight px-1">{label}</div>
-    </div>
-  )
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Nunito', system-ui, sans-serif;
+  color: #3c3a36;
+  -webkit-tap-highlight-color: transparent;
+  background-color: #d9f2ff;
+  background-image:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.85) 0 4px, transparent 5px),
+    radial-gradient(circle at 80% 22%, rgba(255, 255, 255, 0.7) 0 6px, transparent 7px),
+    radial-gradient(circle at 65% 70%, rgba(255, 255, 255, 0.6) 0 5px, transparent 6px),
+    radial-gradient(circle at 30% 85%, rgba(255, 255, 255, 0.7) 0 4px, transparent 5px),
+    linear-gradient(180deg, #bfe9ff 0%, #d9f2ff 40%, #eafff0 100%);
+  background-attachment: fixed;
+}
+
+@layer components {
+  .font-display {
+    font-family: 'Baloo 2', system-ui, sans-serif;
+  }
+
+  /* Chunky Duolingo-style button: solid colour with a darker bottom edge that
+     presses down when tapped. Colour is set per-button via the --b vars. */
+  .btn3d {
+    @apply font-display font-extrabold rounded-2xl px-5 py-3 text-white select-none;
+    background: var(--bg, #58cc02);
+    box-shadow: 0 5px 0 var(--edge, #46a302);
+    transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.15s ease;
+    border: none;
+    cursor: pointer;
+  }
+  .btn3d:active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 var(--edge, #46a302);
+  }
+  .btn3d:disabled {
+    filter: grayscale(0.5) opacity(0.55);
+    cursor: not-allowed;
+  }
+
+  .btn-ghost {
+    @apply font-display font-bold rounded-2xl px-5 py-3 select-none bg-white text-ink;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+    border: 2px solid rgba(0, 0, 0, 0.06);
+    transition: transform 0.06s ease, box-shadow 0.06s ease;
+    cursor: pointer;
+  }
+  .btn-ghost:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+  }
+
+  .card {
+    @apply bg-white rounded-3xl;
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.06), 0 14px 30px rgba(0, 0, 0, 0.08);
+    border: 3px solid #fff;
+  }
+
+  .chip {
+    @apply rounded-2xl px-3 py-2 font-display font-bold text-sm select-none cursor-pointer transition;
+    border: 3px solid rgba(0, 0, 0, 0.06);
+    background: #fff;
+  }
+  .chip-on {
+    border-color: #1cb0f6;
+    box-shadow: 0 0 0 3px rgba(28, 176, 246, 0.25);
+  }
+}
+
+.animate-pop {
+  animation: pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.animate-floaty {
+  animation: floaty 3s ease-in-out infinite;
+}
+
+/* Confetti */
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  top: -20px;
+  animation: confettiFall linear forwards;
+}
+
+/* hide number input spinners */
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
 }

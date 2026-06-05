@@ -1,46 +1,23 @@
-import Avatar from './Avatar.jsx'
-import { Coin } from './ui.jsx'
+import { useState } from 'react'
+import AvatarBuilder from './AvatarBuilder.jsx'
+import { btnVars } from './ui.jsx'
 
-export default function Dashboard({ children, onOpen, onAdd, onPeekShop }) {
+export default function DressUp({ child, onSave, onCancel }) {
+  const [avatar, setAvatar] = useState(child.avatar)
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      <div className="text-center mb-6">
-        <h1 className="font-display text-4xl font-extrabold text-white drop-shadow-md">Behaviour Buddies</h1>
-        <p className="font-display font-bold text-white/85 drop-shadow">Tap a buddy to give faces and shop</p>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {children.map((c) => (
-          <button key={c.id} onClick={() => onOpen(c.id)} className="card p-4 flex flex-col items-center hover:scale-[1.03] active:scale-95 transition">
-            <Avatar config={c.avatar} size={120} ring />
-            <div className="font-display text-xl font-extrabold mt-2">{c.name}</div>
-            <div className="inline-flex items-center gap-1 font-display font-extrabold text-sunnyDark">
-              <Coin size={20} />
-              {c.coins}
-            </div>
+    <div className="max-w-lg mx-auto px-4 py-5">
+      <h1 className="font-display text-3xl font-extrabold text-center text-white drop-shadow mb-4">Dress up {child.name}</h1>
+      <div className="card p-5">
+        <AvatarBuilder value={avatar} onChange={setAvatar} owned={child.owned} showItems />
+        <div className="flex gap-2 mt-6">
+          <button className="btn-ghost flex-1" onClick={onCancel}>
+            Cancel
           </button>
-        ))}
-
-        <button
-          onClick={onAdd}
-          className="card p-4 flex flex-col items-center justify-center text-grassDark border-dashed hover:scale-[1.03] active:scale-95 transition min-h-[190px]"
-          style={{ borderColor: '#bdebac' }}
-        >
-          <div className="text-6xl leading-none">{'\u2795'}</div>
-          <div className="font-display text-lg font-extrabold mt-2">Add a buddy</div>
-        </button>
+          <button className="btn3d flex-1 text-lg" style={btnVars('grass')} onClick={() => onSave(avatar)}>
+            Save look
+          </button>
+        </div>
       </div>
-
-      <button
-        onClick={onPeekShop}
-        className="card w-full mt-4 p-4 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition"
-      >
-        <span className="text-3xl">{'\u{1F6D2}'}</span>
-        <span className="text-left">
-          <span className="block font-display text-lg font-extrabold leading-tight">Peek at the shop</span>
-          <span className="block text-sm text-ink/55 font-semibold leading-tight">See all the treats and items you can win</span>
-        </span>
-      </button>
     </div>
   )
 }

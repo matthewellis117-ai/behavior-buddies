@@ -1,132 +1,335 @@
-import { useEffect, useState } from 'react'
+import { hairColorHex, shirtHex } from '../data/avatar.js'
+import { SKIN_TONES } from '../data/avatar.js'
 
-const COLOURS = {
-  grass: ['#58cc02', '#46a302'],
-  sky: ['#1cb0f6', '#1899d6'],
-  sunny: ['#ffc800', '#e6a900'],
-  coral: ['#ff4b4b', '#e23a3a'],
-  grape: ['#ce82ff', '#a85fd0'],
-  bubble: ['#ff86d0', '#e068b3'],
+function skinHex(id) {
+  return SKIN_TONES.find((s) => s.id === id)?.hex || SKIN_TONES[1].hex
 }
 
-export function btnVars(colour = 'grass') {
-  const [bg, edge] = COLOURS[colour] || COLOURS.grass
-  return { '--bg': bg, '--edge': edge }
+// A gentle darker shade for shading hair / shirts.
+function shade(hex, amt = 0.16) {
+  const n = parseInt(hex.slice(1), 16)
+  let r = (n >> 16) & 255
+  let g = (n >> 8) & 255
+  let b = n & 255
+  r = Math.round(r * (1 - amt))
+  g = Math.round(g * (1 - amt))
+  b = Math.round(b * (1 - amt))
+  return `rgb(${r},${g},${b})`
 }
 
-export function Coin({ size = 26 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden style={{ display: 'inline-block', verticalAlign: 'middle' }}>
-      <circle cx="20" cy="20" r="18" fill="#ffd23f" stroke="#e6a900" strokeWidth="3" />
-      <circle cx="20" cy="20" r="12" fill="#ffe488" stroke="#e6a900" strokeWidth="2" />
-      <text x="20" y="27" textAnchor="middle" fontSize="16" fontWeight="800" fill="#b97f00" fontFamily="Baloo 2, sans-serif">
-        ★
-      </text>
-    </svg>
-  )
+const OUTLINE = 'rgba(60,58,54,0.16)'
+
+/* ---------------- HAIR ---------------- */
+function HairBack({ style, c }) {
+  const d = shade(c, 0.18)
+  switch (style) {
+    case 'long':
+      return <path d="M54 92 C40 132 46 196 64 220 L176 220 C194 196 200 132 186 92 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
+    case 'bob':
+      return <path d="M56 94 C48 124 52 162 66 178 L174 178 C188 162 192 124 184 94 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
+    case 'ponytail':
+      return (
+        <g>
+          <path d="M168 98 C208 106 212 158 190 188 C186 158 176 132 156 122 Z" fill={d} stroke={OUTLINE} strokeWidth="2" />
+          <ellipse cx="176" cy="102" rx="13" ry="11" fill={c} stroke={OUTLINE} strokeWidth="2" />
+        </g>
+      )
+    case 'afro':
+      return <circle cx="120" cy="104" r="84" fill={c} stroke={OUTLINE} strokeWidth="2" />
+    default:
+      return null
+  }
 }
 
-export function CoinPill({ amount, size = 26 }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 bg-white rounded-full pl-1 pr-3 py-1 font-display font-extrabold text-ink shadow">
-      <Coin size={size} />
-      {amount}
-    </span>
-  )
-}
-
-export function Modal({ children, onClose, wide = false }) {
-  useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose?.()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 bg-black/40" onClick={onClose}>
-      <div
-        className={`card w-full ${wide ? 'max-w-2xl' : 'max-w-md'} max-h-[92vh] overflow-y-auto p-5 animate-pop`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>
-  )
-}
-
-export function Confetti({ run }) {
-  const [pieces] = useState(() =>
-    Array.from({ length: 80 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 0.6,
-      dur: 1.4 + Math.random() * 1.4,
-      colour: ['#58cc02', '#1cb0f6', '#ffc800', '#ff4b4b', '#ce82ff', '#ff86d0'][i % 6],
-      rot: Math.random() * 360,
-    }))
-  )
-  if (!run) return null
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[60] overflow-hidden">
-      {pieces.map((p) => (
-        <span
-          key={p.id}
-          className="confetti-piece"
-          style={{
-            left: p.left + '%',
-            background: p.colour,
-            animationDuration: p.dur + 's',
-            animationDelay: p.delay + 's',
-            transform: `rotate(${p.rot}deg)`,
-          }}
+function HairFront({ style, c }) {
+  if (style === 'bald') return null
+  const d = shade(c, 0.16)
+  const common = { fill: c, stroke: OUTLINE, strokeWidth: 2 }
+  // A full, lower hairline that frames the face instead of perching on the crown.
+  const FULL = 'M54 104 C54 46 186 46 186 104 C176 90 150 84 120 84 C90 84 64 90 54 104 Z'
+  switch (style) {
+    case 'buzz':
+      return <path d="M58 100 C62 54 178 54 182 100 C168 86 150 82 120 82 C90 82 72 86 58 100 Z" {...common} />
+    case 'short':
+      return <path d={FULL} {...common} />
+    case 'swoosh':
+      return (
+        <g>
+          <path d={FULL} {...common} />
+          <path d="M112 86 C150 80 182 92 184 106 C150 86 120 102 92 102 C104 88 106 87 112 86 Z" fill={d} />
+        </g>
+      )
+    case 'bob':
+      return <path d={FULL} {...common} />
+    case 'ponytail':
+      return <path d={FULL} {...common} />
+    case 'curly':
+      return (
+        <g {...common}>
+          <circle cx="70" cy="92" r="22" /><circle cx="96" cy="74" r="24" />
+          <circle cx="120" cy="68" r="24" /><circle cx="144" cy="74" r="24" />
+          <circle cx="170" cy="92" r="22" /><circle cx="58" cy="108" r="17" />
+          <circle cx="182" cy="108" r="17" />
+        </g>
+      )
+    case 'afro':
+      return <path d="M52 106 C44 50 196 50 188 106 C176 88 150 82 120 82 C90 82 64 88 52 106 Z" {...common} />
+    case 'bun':
+      return (
+        <g>
+          <circle cx="120" cy="48" r="18" {...common} />
+          <path d={FULL} {...common} />
+        </g>
+      )
+    case 'long':
+      return <path d={FULL} {...common} />
+    case 'spiky':
+      return (
+        <path
+          d="M56 104 L72 56 L90 96 L106 50 L122 96 L138 50 L154 96 L170 56 L184 104 C172 88 150 82 120 82 C90 82 68 88 56 104 Z"
+          {...common}
         />
-      ))}
-    </div>
+      )
+    default:
+      return <path d={FULL} {...common} />
+  }
+}
+
+/* ---------------- EYES ---------------- */
+function Eye({ x, style, winkClosed }) {
+  const white = '#ffffff'
+  const ink = '#3c3a36'
+  if (style === 'happy')
+    return <path d={`M${x - 13} 116 Q${x} 102 ${x + 13} 116`} fill="none" stroke={ink} strokeWidth="6" strokeLinecap="round" />
+  if (style === 'sleepy')
+    return <path d={`M${x - 13} 114 Q${x} 122 ${x + 13} 114`} fill="none" stroke={ink} strokeWidth="6" strokeLinecap="round" />
+  if (style === 'wink' && winkClosed)
+    return <path d={`M${x - 13} 114 Q${x} 122 ${x + 13} 114`} fill="none" stroke={ink} strokeWidth="6" strokeLinecap="round" />
+  const r = style === 'wide' ? 15 : 12
+  const pr = style === 'wide' ? 8 : 7
+  return (
+    <g>
+      <circle cx={x} cy={114} r={r} fill={white} stroke={OUTLINE} strokeWidth="2" />
+      <circle cx={x + 1} cy={116} r={pr} fill={ink} />
+      <circle cx={x + 4} cy={112} r={style === 'sparkle' ? 4 : 2.6} fill="#fff" />
+      {style === 'sparkle' && <circle cx={x - 3} cy={118} r={2} fill="#fff" />}
+    </g>
   )
 }
 
-// Grown-up PIN gate. If a PIN is set, the protected action asks for it first.
-export function PinGate({ pin, onPass, onClose, title = 'Grown-ups only' }) {
-  const [entry, setEntry] = useState('')
-  const [err, setErr] = useState(false)
-  if (!pin) {
-    onPass()
-    return null
-  }
-  const submit = () => {
-    if (entry === pin) onPass()
-    else {
-      setErr(true)
-      setEntry('')
-    }
-  }
+function Eyes({ style }) {
   return (
-    <Modal onClose={onClose}>
-      <h3 className="font-display text-2xl font-extrabold text-center mb-1">{title}</h3>
-      <p className="text-center text-ink/60 mb-4 font-semibold">Enter the 4-digit PIN</p>
-      <input
-        autoFocus
-        inputMode="numeric"
-        value={entry}
-        maxLength={4}
-        onChange={(e) => {
-          setErr(false)
-          setEntry(e.target.value.replace(/\D/g, ''))
-        }}
-        onKeyDown={(e) => e.key === 'Enter' && submit()}
-        className={`w-full text-center text-3xl tracking-[0.5em] font-display font-extrabold rounded-2xl py-3 border-4 ${
-          err ? 'border-coral' : 'border-sky/40'
-        } outline-none`}
-        placeholder="••••"
-      />
-      {err && <p className="text-coral text-center font-bold mt-2">Not quite, try again</p>}
-      <div className="flex gap-2 mt-4">
-        <button className="btn-ghost flex-1" onClick={onClose}>
-          Cancel
-        </button>
-        <button className="btn3d flex-1" style={btnVars('grass')} onClick={submit}>
-          Unlock
-        </button>
-      </div>
-    </Modal>
+    <g>
+      <Eye x={98} style={style} />
+      <Eye x={142} style={style} winkClosed={style === 'wink'} />
+    </g>
+  )
+}
+
+/* ---------------- MOUTH ---------------- */
+function Mouth({ style }) {
+  const ink = '#3c3a36'
+  switch (style) {
+    case 'grin':
+      return (
+        <g>
+          <path d="M96 146 Q120 176 144 146 Z" fill={ink} />
+          <path d="M100 150 Q120 158 140 150 Z" fill="#fff" />
+        </g>
+      )
+    case 'small':
+      return <path d="M110 152 Q120 160 130 152" fill="none" stroke={ink} strokeWidth="5" strokeLinecap="round" />
+    case 'laugh':
+      return (
+        <g>
+          <path d="M94 144 Q120 184 146 144 Z" fill={ink} />
+          <path d="M110 168 Q120 176 130 168 Z" fill="#ff7a7a" />
+        </g>
+      )
+    case 'neutral':
+      return <line x1="104" y1="154" x2="136" y2="154" stroke={ink} strokeWidth="5" strokeLinecap="round" />
+    case 'surprise':
+      return <ellipse cx="120" cy="154" rx="11" ry="14" fill={ink} />
+    default: // smile
+      return <path d="M100 146 Q120 168 140 146" fill="none" stroke={ink} strokeWidth="6" strokeLinecap="round" />
+  }
+}
+
+/* ---------------- ACCESSORIES ---------------- */
+function Glasses({ style }) {
+  if (!style) return null
+  if (style === 'sunnies')
+    return (
+      <g stroke="#2b2b2f" strokeWidth="4" fill="#3c3a36">
+        <rect x="78" y="102" width="38" height="26" rx="10" />
+        <rect x="124" y="102" width="38" height="26" rx="10" />
+        <line x1="116" y1="110" x2="124" y2="110" />
+      </g>
+    )
+  return (
+    <g stroke="#3c3a36" strokeWidth="4" fill="none">
+      <circle cx="98" cy="114" r="18" />
+      <circle cx="142" cy="114" r="18" />
+      <line x1="116" y1="114" x2="124" y2="114" />
+    </g>
+  )
+}
+
+function Earrings({ style }) {
+  if (!style) return null
+  return (
+    <g>
+      <circle cx="58" cy="138" r="5" fill="#ffd23f" stroke={OUTLINE} strokeWidth="1.5" />
+      <circle cx="182" cy="138" r="5" fill="#ffd23f" stroke={OUTLINE} strokeWidth="1.5" />
+    </g>
+  )
+}
+
+function Necklace({ style }) {
+  if (!style) return null
+  const gem = style === 'jewel'
+  return (
+    <g>
+      <path d="M96 196 Q120 214 144 196" fill="none" stroke={gem ? '#ffd23f' : '#7ec8ff'} strokeWidth="4" />
+      {gem ? (
+        <path d="M120 206 l8 8 -8 10 -8 -10 Z" fill="#7ec8ff" stroke="#fff" strokeWidth="1.5" />
+      ) : (
+        <circle cx="120" cy="210" r="5" fill="#ff86d0" stroke={OUTLINE} strokeWidth="1.5" />
+      )}
+    </g>
+  )
+}
+
+function Hat({ style }) {
+  if (!style) return null
+  switch (style) {
+    case 'headband':
+      return (
+        <g stroke={OUTLINE} strokeWidth="2">
+          <path d="M56 100 C60 76 180 76 184 100 C184 90 176 88 120 88 C64 88 56 90 56 100 Z" fill="#3fd6a8" />
+          <circle cx="120" cy="83" r="6" fill="#28b48a" />
+        </g>
+      )
+    case 'cap':
+      return (
+        <g stroke={OUTLINE} strokeWidth="2">
+          <path d="M62 90 C62 48 178 48 178 90 C150 80 90 80 62 90 Z" fill="#ff4b4b" />
+          <path d="M60 90 C34 88 26 100 32 106 C72 96 112 96 126 92 L126 84 Z" fill="#e23a3a" />
+          <circle cx="120" cy="50" r="5" fill="#e23a3a" />
+        </g>
+      )
+    case 'beanie':
+      return (
+        <g stroke={OUTLINE} strokeWidth="2">
+          <path d="M60 88 C60 46 180 46 180 88 Z" fill="#1cb0f6" />
+          <path d="M56 82 C80 92 160 92 184 82 L184 86 C160 102 80 102 56 86 Z" fill="#1899d6" />
+          <circle cx="120" cy="42" r="8" fill="#e8f4ff" />
+        </g>
+      )
+    case 'party':
+      return (
+        <g stroke={OUTLINE} strokeWidth="2">
+          <path d="M120 14 L152 90 L88 90 Z" fill="#ce82ff" />
+          <circle cx="120" cy="14" r="7" fill="#ffc800" />
+          <circle cx="108" cy="62" r="4" fill="#fff" /><circle cx="134" cy="52" r="4" fill="#fff" />
+        </g>
+      )
+    case 'wizard':
+      return (
+        <g stroke={OUTLINE} strokeWidth="2">
+          <path d="M120 6 C108 40 96 80 88 92 L152 92 C144 80 132 40 120 6 Z" fill="#6b4fbb" />
+          <path d="M66 92 L174 92 L174 102 L66 102 Z" fill="#5a3fa0" />
+          <path d="M118 38 l4 8 8 2 -8 4 -2 8 -4 -8 -8 -2 8 -4 Z" fill="#ffd23f" />
+        </g>
+      )
+    case 'flowers':
+      return (
+        <g stroke={OUTLINE} strokeWidth="1.5">
+          {[60, 88, 120, 152, 180].map((x, i) => (
+            <g key={i}>
+              <circle cx={x} cy={82 - (i % 2) * 6} r="10" fill={['#ff86d0', '#ffc800', '#ff7a7a', '#ce82ff', '#58cc02'][i]} />
+              <circle cx={x} cy={82 - (i % 2) * 6} r="3.5" fill="#fff" />
+            </g>
+          ))}
+        </g>
+      )
+    case 'crown':
+      return (
+        <g stroke={OUTLINE} strokeWidth="2">
+          <path d="M68 90 L68 54 L92 72 L120 46 L148 72 L172 54 L172 90 Z" fill="#ffc800" />
+          <circle cx="120" cy="60" r="5" fill="#ff4b4b" />
+          <circle cx="86" cy="68" r="4" fill="#1cb0f6" /><circle cx="154" cy="68" r="4" fill="#1cb0f6" />
+        </g>
+      )
+    case 'halo':
+      return (
+        <g>
+          <ellipse cx="120" cy="40" rx="46" ry="12" fill="none" stroke="#ffd23f" strokeWidth="7" />
+          <ellipse cx="120" cy="40" rx="46" ry="12" fill="none" stroke="#fff3c4" strokeWidth="2" />
+        </g>
+      )
+    default:
+      return null
+  }
+}
+
+/* ---------------- AVATAR ---------------- */
+export default function Avatar({ config = {}, size = 200, ring = false, className = '' }) {
+  const skin = skinHex(config.skin)
+  const hair = hairColorHex(config.hairColor)
+  const shirt = shirtHex(config.shirt)
+  const hairStyle = config.hair || 'swoosh'
+
+  return (
+    <svg
+      viewBox="0 0 240 240"
+      width={size}
+      height={size}
+      className={className}
+      style={{ display: 'block' }}
+      role="img"
+      aria-label="buddy avatar"
+    >
+      {ring && <circle cx="120" cy="120" r="118" fill="#fff" stroke="rgba(0,0,0,0.06)" strokeWidth="3" />}
+
+      {/* body / shoulders */}
+      <path d="M52 240 C52 196 86 178 120 178 C154 178 188 196 188 240 Z" fill={shirt} stroke={OUTLINE} strokeWidth="2" />
+      <path d="M120 178 C100 178 84 184 72 196 C92 190 148 190 168 196 C156 184 140 178 120 178 Z" fill={shade(shirt, 0.12)} />
+
+      {/* neck */}
+      <rect x="106" y="158" width="28" height="30" rx="12" fill={shade(skin, 0.08)} />
+
+      {/* hair behind head */}
+      <HairBack style={hairStyle} c={hair} />
+
+      {/* ears */}
+      <circle cx="60" cy="120" r="13" fill={skin} stroke={OUTLINE} strokeWidth="2" />
+      <circle cx="180" cy="120" r="13" fill={skin} stroke={OUTLINE} strokeWidth="2" />
+      <Earrings style={config.earrings} />
+
+      {/* head */}
+      <ellipse cx="120" cy="116" rx="64" ry="66" fill={skin} stroke={OUTLINE} strokeWidth="2" />
+
+      {/* cheeks */}
+      {config.cheeks !== false && (
+        <g>
+          <circle cx="82" cy="138" r="9" fill="#ff9aa2" opacity="0.5" />
+          <circle cx="158" cy="138" r="9" fill="#ff9aa2" opacity="0.5" />
+        </g>
+      )}
+
+      {/* face */}
+      <Eyes style={config.eyes || 'happy'} />
+      <path d="M118 130 Q120 138 124 134" fill="none" stroke={shade(skin, 0.22)} strokeWidth="3" strokeLinecap="round" />
+      <Mouth style={config.mouth || 'smile'} />
+      <Glasses style={config.glasses} />
+
+      {/* hair in front + hat on top */}
+      <HairFront style={hairStyle} c={hair} />
+      <Hat style={config.hat} />
+
+      {/* necklace sits over the shirt */}
+      <Necklace style={config.necklace} />
+    </svg>
   )
 }

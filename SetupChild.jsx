@@ -1,335 +1,171 @@
-import { hairColorHex, shirtHex } from '../data/avatar.js'
-import { SKIN_TONES } from '../data/avatar.js'
+import { useState } from 'react'
+import Avatar from './Avatar.jsx'
+import {
+  SKIN_TONES,
+  HAIR_STYLES,
+  BASIC_HAIR_COLORS,
+  FUN_HAIR_COLORS,
+  EYE_STYLES,
+  MOUTH_STYLES,
+  SHIRT_COLORS,
+  randomAvatar,
+} from '../data/avatar.js'
+import { REWARDS } from '../data/rewards.js'
+import { btnVars } from './ui.jsx'
 
-function skinHex(id) {
-  return SKIN_TONES.find((s) => s.id === id)?.hex || SKIN_TONES[1].hex
-}
+const FACE_TABS = [
+  { id: 'skin', label: 'Skin' },
+  { id: 'hair', label: 'Hair' },
+  { id: 'colour', label: 'Colour' },
+  { id: 'eyes', label: 'Eyes' },
+  { id: 'mouth', label: 'Mouth' },
+  { id: 'cheeks', label: 'Cheeks' },
+  { id: 'shirt', label: 'Top' },
+]
 
-// A gentle darker shade for shading hair / shirts.
-function shade(hex, amt = 0.16) {
-  const n = parseInt(hex.slice(1), 16)
-  let r = (n >> 16) & 255
-  let g = (n >> 8) & 255
-  let b = n & 255
-  r = Math.round(r * (1 - amt))
-  g = Math.round(g * (1 - amt))
-  b = Math.round(b * (1 - amt))
-  return `rgb(${r},${g},${b})`
-}
-
-const OUTLINE = 'rgba(60,58,54,0.16)'
-
-/* ---------------- HAIR ---------------- */
-function HairBack({ style, c }) {
-  const d = shade(c, 0.18)
-  switch (style) {
-    case 'long':
-      return <path d="M54 92 C40 132 46 196 64 220 L176 220 C194 196 200 132 186 92 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
-    case 'bob':
-      return <path d="M56 94 C48 124 52 162 66 178 L174 178 C188 162 192 124 184 94 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
-    case 'ponytail':
-      return (
-        <g>
-          <path d="M168 98 C208 106 212 158 190 188 C186 158 176 132 156 122 Z" fill={d} stroke={OUTLINE} strokeWidth="2" />
-          <ellipse cx="176" cy="102" rx="13" ry="11" fill={c} stroke={OUTLINE} strokeWidth="2" />
-        </g>
-      )
-    case 'afro':
-      return <circle cx="120" cy="104" r="84" fill={c} stroke={OUTLINE} strokeWidth="2" />
-    default:
-      return null
-  }
-}
-
-function HairFront({ style, c }) {
-  if (style === 'bald') return null
-  const d = shade(c, 0.16)
-  const common = { fill: c, stroke: OUTLINE, strokeWidth: 2 }
-  // A full, lower hairline that frames the face instead of perching on the crown.
-  const FULL = 'M54 104 C54 46 186 46 186 104 C176 90 150 84 120 84 C90 84 64 90 54 104 Z'
-  switch (style) {
-    case 'buzz':
-      return <path d="M58 100 C62 54 178 54 182 100 C168 86 150 82 120 82 C90 82 72 86 58 100 Z" {...common} />
-    case 'short':
-      return <path d={FULL} {...common} />
-    case 'swoosh':
-      return (
-        <g>
-          <path d={FULL} {...common} />
-          <path d="M112 86 C150 80 182 92 184 106 C150 86 120 102 92 102 C104 88 106 87 112 86 Z" fill={d} />
-        </g>
-      )
-    case 'bob':
-      return <path d={FULL} {...common} />
-    case 'ponytail':
-      return <path d={FULL} {...common} />
-    case 'curly':
-      return (
-        <g {...common}>
-          <circle cx="70" cy="92" r="22" /><circle cx="96" cy="74" r="24" />
-          <circle cx="120" cy="68" r="24" /><circle cx="144" cy="74" r="24" />
-          <circle cx="170" cy="92" r="22" /><circle cx="58" cy="108" r="17" />
-          <circle cx="182" cy="108" r="17" />
-        </g>
-      )
-    case 'afro':
-      return <path d="M52 106 C44 50 196 50 188 106 C176 88 150 82 120 82 C90 82 64 88 52 106 Z" {...common} />
-    case 'bun':
-      return (
-        <g>
-          <circle cx="120" cy="48" r="18" {...common} />
-          <path d={FULL} {...common} />
-        </g>
-      )
-    case 'long':
-      return <path d={FULL} {...common} />
-    case 'spiky':
-      return (
-        <path
-          d="M56 104 L72 56 L90 96 L106 50 L122 96 L138 50 L154 96 L170 56 L184 104 C172 88 150 82 120 82 C90 82 68 88 56 104 Z"
-          {...common}
-        />
-      )
-    default:
-      return <path d={FULL} {...common} />
-  }
-}
-
-/* ---------------- EYES ---------------- */
-function Eye({ x, style, winkClosed }) {
-  const white = '#ffffff'
-  const ink = '#3c3a36'
-  if (style === 'happy')
-    return <path d={`M${x - 13} 116 Q${x} 102 ${x + 13} 116`} fill="none" stroke={ink} strokeWidth="6" strokeLinecap="round" />
-  if (style === 'sleepy')
-    return <path d={`M${x - 13} 114 Q${x} 122 ${x + 13} 114`} fill="none" stroke={ink} strokeWidth="6" strokeLinecap="round" />
-  if (style === 'wink' && winkClosed)
-    return <path d={`M${x - 13} 114 Q${x} 122 ${x + 13} 114`} fill="none" stroke={ink} strokeWidth="6" strokeLinecap="round" />
-  const r = style === 'wide' ? 15 : 12
-  const pr = style === 'wide' ? 8 : 7
+function Swatch({ hex, on, onClick, locked }) {
   return (
-    <g>
-      <circle cx={x} cy={114} r={r} fill={white} stroke={OUTLINE} strokeWidth="2" />
-      <circle cx={x + 1} cy={116} r={pr} fill={ink} />
-      <circle cx={x + 4} cy={112} r={style === 'sparkle' ? 4 : 2.6} fill="#fff" />
-      {style === 'sparkle' && <circle cx={x - 3} cy={118} r={2} fill="#fff" />}
-    </g>
-  )
-}
-
-function Eyes({ style }) {
-  return (
-    <g>
-      <Eye x={98} style={style} />
-      <Eye x={142} style={style} winkClosed={style === 'wink'} />
-    </g>
-  )
-}
-
-/* ---------------- MOUTH ---------------- */
-function Mouth({ style }) {
-  const ink = '#3c3a36'
-  switch (style) {
-    case 'grin':
-      return (
-        <g>
-          <path d="M96 146 Q120 176 144 146 Z" fill={ink} />
-          <path d="M100 150 Q120 158 140 150 Z" fill="#fff" />
-        </g>
-      )
-    case 'small':
-      return <path d="M110 152 Q120 160 130 152" fill="none" stroke={ink} strokeWidth="5" strokeLinecap="round" />
-    case 'laugh':
-      return (
-        <g>
-          <path d="M94 144 Q120 184 146 144 Z" fill={ink} />
-          <path d="M110 168 Q120 176 130 168 Z" fill="#ff7a7a" />
-        </g>
-      )
-    case 'neutral':
-      return <line x1="104" y1="154" x2="136" y2="154" stroke={ink} strokeWidth="5" strokeLinecap="round" />
-    case 'surprise':
-      return <ellipse cx="120" cy="154" rx="11" ry="14" fill={ink} />
-    default: // smile
-      return <path d="M100 146 Q120 168 140 146" fill="none" stroke={ink} strokeWidth="6" strokeLinecap="round" />
-  }
-}
-
-/* ---------------- ACCESSORIES ---------------- */
-function Glasses({ style }) {
-  if (!style) return null
-  if (style === 'sunnies')
-    return (
-      <g stroke="#2b2b2f" strokeWidth="4" fill="#3c3a36">
-        <rect x="78" y="102" width="38" height="26" rx="10" />
-        <rect x="124" y="102" width="38" height="26" rx="10" />
-        <line x1="116" y1="110" x2="124" y2="110" />
-      </g>
-    )
-  return (
-    <g stroke="#3c3a36" strokeWidth="4" fill="none">
-      <circle cx="98" cy="114" r="18" />
-      <circle cx="142" cy="114" r="18" />
-      <line x1="116" y1="114" x2="124" y2="114" />
-    </g>
-  )
-}
-
-function Earrings({ style }) {
-  if (!style) return null
-  return (
-    <g>
-      <circle cx="58" cy="138" r="5" fill="#ffd23f" stroke={OUTLINE} strokeWidth="1.5" />
-      <circle cx="182" cy="138" r="5" fill="#ffd23f" stroke={OUTLINE} strokeWidth="1.5" />
-    </g>
-  )
-}
-
-function Necklace({ style }) {
-  if (!style) return null
-  const gem = style === 'jewel'
-  return (
-    <g>
-      <path d="M96 196 Q120 214 144 196" fill="none" stroke={gem ? '#ffd23f' : '#7ec8ff'} strokeWidth="4" />
-      {gem ? (
-        <path d="M120 206 l8 8 -8 10 -8 -10 Z" fill="#7ec8ff" stroke="#fff" strokeWidth="1.5" />
-      ) : (
-        <circle cx="120" cy="210" r="5" fill="#ff86d0" stroke={OUTLINE} strokeWidth="1.5" />
-      )}
-    </g>
-  )
-}
-
-function Hat({ style }) {
-  if (!style) return null
-  switch (style) {
-    case 'headband':
-      return (
-        <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M56 100 C60 76 180 76 184 100 C184 90 176 88 120 88 C64 88 56 90 56 100 Z" fill="#3fd6a8" />
-          <circle cx="120" cy="83" r="6" fill="#28b48a" />
-        </g>
-      )
-    case 'cap':
-      return (
-        <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M62 90 C62 48 178 48 178 90 C150 80 90 80 62 90 Z" fill="#ff4b4b" />
-          <path d="M60 90 C34 88 26 100 32 106 C72 96 112 96 126 92 L126 84 Z" fill="#e23a3a" />
-          <circle cx="120" cy="50" r="5" fill="#e23a3a" />
-        </g>
-      )
-    case 'beanie':
-      return (
-        <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M60 88 C60 46 180 46 180 88 Z" fill="#1cb0f6" />
-          <path d="M56 82 C80 92 160 92 184 82 L184 86 C160 102 80 102 56 86 Z" fill="#1899d6" />
-          <circle cx="120" cy="42" r="8" fill="#e8f4ff" />
-        </g>
-      )
-    case 'party':
-      return (
-        <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M120 14 L152 90 L88 90 Z" fill="#ce82ff" />
-          <circle cx="120" cy="14" r="7" fill="#ffc800" />
-          <circle cx="108" cy="62" r="4" fill="#fff" /><circle cx="134" cy="52" r="4" fill="#fff" />
-        </g>
-      )
-    case 'wizard':
-      return (
-        <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M120 6 C108 40 96 80 88 92 L152 92 C144 80 132 40 120 6 Z" fill="#6b4fbb" />
-          <path d="M66 92 L174 92 L174 102 L66 102 Z" fill="#5a3fa0" />
-          <path d="M118 38 l4 8 8 2 -8 4 -2 8 -4 -8 -8 -2 8 -4 Z" fill="#ffd23f" />
-        </g>
-      )
-    case 'flowers':
-      return (
-        <g stroke={OUTLINE} strokeWidth="1.5">
-          {[60, 88, 120, 152, 180].map((x, i) => (
-            <g key={i}>
-              <circle cx={x} cy={82 - (i % 2) * 6} r="10" fill={['#ff86d0', '#ffc800', '#ff7a7a', '#ce82ff', '#58cc02'][i]} />
-              <circle cx={x} cy={82 - (i % 2) * 6} r="3.5" fill="#fff" />
-            </g>
-          ))}
-        </g>
-      )
-    case 'crown':
-      return (
-        <g stroke={OUTLINE} strokeWidth="2">
-          <path d="M68 90 L68 54 L92 72 L120 46 L148 72 L172 54 L172 90 Z" fill="#ffc800" />
-          <circle cx="120" cy="60" r="5" fill="#ff4b4b" />
-          <circle cx="86" cy="68" r="4" fill="#1cb0f6" /><circle cx="154" cy="68" r="4" fill="#1cb0f6" />
-        </g>
-      )
-    case 'halo':
-      return (
-        <g>
-          <ellipse cx="120" cy="40" rx="46" ry="12" fill="none" stroke="#ffd23f" strokeWidth="7" />
-          <ellipse cx="120" cy="40" rx="46" ry="12" fill="none" stroke="#fff3c4" strokeWidth="2" />
-        </g>
-      )
-    default:
-      return null
-  }
-}
-
-/* ---------------- AVATAR ---------------- */
-export default function Avatar({ config = {}, size = 200, ring = false, className = '' }) {
-  const skin = skinHex(config.skin)
-  const hair = hairColorHex(config.hairColor)
-  const shirt = shirtHex(config.shirt)
-  const hairStyle = config.hair || 'swoosh'
-
-  return (
-    <svg
-      viewBox="0 0 240 240"
-      width={size}
-      height={size}
-      className={className}
-      style={{ display: 'block' }}
-      role="img"
-      aria-label="buddy avatar"
+    <button
+      onClick={onClick}
+      disabled={locked}
+      className={`w-11 h-11 rounded-2xl border-4 transition ${on ? 'border-sky scale-110' : 'border-white'} ${
+        locked ? 'opacity-40' : ''
+      }`}
+      style={{ background: hex, boxShadow: '0 3px 0 rgba(0,0,0,0.12)' }}
+      aria-label="colour"
     >
-      {ring && <circle cx="120" cy="120" r="118" fill="#fff" stroke="rgba(0,0,0,0.06)" strokeWidth="3" />}
+      {locked && '\u{1F512}'}
+    </button>
+  )
+}
 
-      {/* body / shoulders */}
-      <path d="M52 240 C52 196 86 178 120 178 C154 178 188 196 188 240 Z" fill={shirt} stroke={OUTLINE} strokeWidth="2" />
-      <path d="M120 178 C100 178 84 184 72 196 C92 190 148 190 168 196 C156 184 140 178 120 178 Z" fill={shade(shirt, 0.12)} />
+function Chip({ label, on, onClick }) {
+  return (
+    <button onClick={onClick} className={`chip ${on ? 'chip-on' : ''}`}>
+      {label}
+    </button>
+  )
+}
 
-      {/* neck */}
-      <rect x="106" y="158" width="28" height="30" rx="12" fill={shade(skin, 0.08)} />
+export default function AvatarBuilder({ value, onChange, owned = [], showItems = true }) {
+  const [tab, setTab] = useState('skin')
+  const [section, setSection] = useState('face') // 'face' | 'items'
+  const set = (patch) => onChange({ ...value, ...patch })
 
-      {/* hair behind head */}
-      <HairBack style={hairStyle} c={hair} />
+  const ownsFunHair = owned.includes('haircolour')
+  const ownedItems = REWARDS.filter((r) => r.type === 'avatar' && owned.includes(r.id))
+  const slots = ['hat', 'glasses', 'earrings', 'necklace']
+  const slotItems = (slot) => ownedItems.filter((r) => r.field === slot)
+  const hasItems = ownedItems.some((r) => slots.includes(r.field))
 
-      {/* ears */}
-      <circle cx="60" cy="120" r="13" fill={skin} stroke={OUTLINE} strokeWidth="2" />
-      <circle cx="180" cy="120" r="13" fill={skin} stroke={OUTLINE} strokeWidth="2" />
-      <Earrings style={config.earrings} />
+  return (
+    <div>
+      <div className="flex flex-col items-center">
+        <div className="bg-cream rounded-full p-2 animate-floaty" style={{ boxShadow: '0 8px 0 rgba(0,0,0,0.06)' }}>
+          <Avatar config={value} size={180} ring />
+        </div>
+        <button className="btn-ghost mt-3 text-sm" onClick={() => onChange({ ...randomAvatar(), ...pickItems(value) })}>
+          🎲 Surprise me
+        </button>
+      </div>
 
-      {/* head */}
-      <ellipse cx="120" cy="116" rx="64" ry="66" fill={skin} stroke={OUTLINE} strokeWidth="2" />
-
-      {/* cheeks */}
-      {config.cheeks !== false && (
-        <g>
-          <circle cx="82" cy="138" r="9" fill="#ff9aa2" opacity="0.5" />
-          <circle cx="158" cy="138" r="9" fill="#ff9aa2" opacity="0.5" />
-        </g>
+      {showItems && (
+        <div className="flex justify-center gap-2 mt-4">
+          <button className={`chip ${section === 'face' ? 'chip-on' : ''}`} onClick={() => setSection('face')}>
+            Face
+          </button>
+          <button className={`chip ${section === 'items' ? 'chip-on' : ''}`} onClick={() => setSection('items')}>
+            Items {hasItems ? '' : '\u{1F512}'}
+          </button>
+        </div>
       )}
 
-      {/* face */}
-      <Eyes style={config.eyes || 'happy'} />
-      <path d="M118 130 Q120 138 124 134" fill="none" stroke={shade(skin, 0.22)} strokeWidth="3" strokeLinecap="round" />
-      <Mouth style={config.mouth || 'smile'} />
-      <Glasses style={config.glasses} />
+      {section === 'face' ? (
+        <>
+          <div className="flex flex-wrap justify-center gap-2 mt-4">
+            {FACE_TABS.map((t) => (
+              <Chip key={t.id} label={t.label} on={tab === t.id} onClick={() => setTab(t.id)} />
+            ))}
+          </div>
 
-      {/* hair in front + hat on top */}
-      <HairFront style={hairStyle} c={hair} />
-      <Hat style={config.hat} />
+          <div className="mt-4 min-h-[96px] flex flex-wrap gap-2 justify-center items-center">
+            {tab === 'skin' &&
+              SKIN_TONES.map((s) => <Swatch key={s.id} hex={s.hex} on={value.skin === s.id} onClick={() => set({ skin: s.id })} />)}
 
-      {/* necklace sits over the shirt */}
-      <Necklace style={config.necklace} />
-    </svg>
+            {tab === 'hair' &&
+              HAIR_STYLES.map((h) => <Chip key={h.id} label={h.name} on={value.hair === h.id} onClick={() => set({ hair: h.id })} />)}
+
+            {tab === 'colour' && (
+              <>
+                {BASIC_HAIR_COLORS.map((c) => (
+                  <Swatch key={c.id} hex={c.hex} on={value.hairColor === c.id} onClick={() => set({ hairColor: c.id })} />
+                ))}
+                {FUN_HAIR_COLORS.map((c) => (
+                  <Swatch
+                    key={c.id}
+                    hex={c.hex}
+                    on={value.hairColor === c.id}
+                    locked={!ownsFunHair}
+                    onClick={() => ownsFunHair && set({ hairColor: c.id })}
+                  />
+                ))}
+                {!ownsFunHair && <p className="w-full text-center text-xs text-ink/50 font-bold">Unlock fun colours in the shop</p>}
+              </>
+            )}
+
+            {tab === 'eyes' &&
+              EYE_STYLES.map((e) => <Chip key={e.id} label={e.name} on={value.eyes === e.id} onClick={() => set({ eyes: e.id })} />)}
+
+            {tab === 'mouth' &&
+              MOUTH_STYLES.map((m) => <Chip key={m.id} label={m.name} on={value.mouth === m.id} onClick={() => set({ mouth: m.id })} />)}
+
+            {tab === 'cheeks' && (
+              <>
+                <Chip label="Rosy cheeks" on={value.cheeks !== false} onClick={() => set({ cheeks: true })} />
+                <Chip label="No cheeks" on={value.cheeks === false} onClick={() => set({ cheeks: false })} />
+              </>
+            )}
+
+            {tab === 'shirt' &&
+              SHIRT_COLORS.map((c) => <Swatch key={c.id} hex={c.hex} on={value.shirt === c.id} onClick={() => set({ shirt: c.id })} />)}
+          </div>
+        </>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {!hasItems && (
+            <p className="text-center text-ink/50 font-bold py-6">No items yet. Earn coins, then buy hats, crowns and jewellery in the shop!</p>
+          )}
+          {slots.map((slot) => {
+            const items = slotItems(slot)
+            if (!items.length) return null
+            const label = { hat: 'Hats', glasses: 'Glasses', earrings: 'Earrings', necklace: 'Necklaces' }[slot]
+            return (
+              <div key={slot}>
+                <div className="font-display font-bold text-ink/60 text-sm mb-1">{label}</div>
+                <div className="flex flex-wrap gap-2">
+                  <button className={`chip ${!value[slot] ? 'chip-on' : ''}`} onClick={() => set({ [slot]: null })}>
+                    None
+                  </button>
+                  {items.map((r) => (
+                    <button
+                      key={r.id}
+                      className={`chip ${value[slot] === r.unlocks ? 'chip-on' : ''}`}
+                      onClick={() => set({ [slot]: r.unlocks })}
+                    >
+                      {r.emoji} {r.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
+}
+
+// keep equipped items when shuffling the face
+function pickItems(v) {
+  return { hat: v.hat, glasses: v.glasses, earrings: v.earrings, necklace: v.necklace, shirt: v.shirt, cheeks: v.cheeks }
 }

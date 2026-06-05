@@ -1,171 +1,116 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Avatar from './Avatar.jsx'
-import {
-  SKIN_TONES,
-  HAIR_STYLES,
-  BASIC_HAIR_COLORS,
-  FUN_HAIR_COLORS,
-  EYE_STYLES,
-  MOUTH_STYLES,
-  SHIRT_COLORS,
-  randomAvatar,
-} from '../data/avatar.js'
-import { REWARDS } from '../data/rewards.js'
-import { btnVars } from './ui.jsx'
+import { ALL_BEHAVIOURS, behaviourById } from '../data/behaviours.js'
+import { tallyWeek, coinsFromWeek, weekKey, weekLabel, prevWeekKey } from '../lib/economy.js'
+import { Coin } from './ui.jsx'
 
-const FACE_TABS = [
-  { id: 'skin', label: 'Skin' },
-  { id: 'hair', label: 'Hair' },
-  { id: 'colour', label: 'Colour' },
-  { id: 'eyes', label: 'Eyes' },
-  { id: 'mouth', label: 'Mouth' },
-  { id: 'cheeks', label: 'Cheeks' },
-  { id: 'shirt', label: 'Top' },
-]
-
-function Swatch({ hex, on, onClick, locked }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={locked}
-      className={`w-11 h-11 rounded-2xl border-4 transition ${on ? 'border-sky scale-110' : 'border-white'} ${
-        locked ? 'opacity-40' : ''
-      }`}
-      style={{ background: hex, boxShadow: '0 3px 0 rgba(0,0,0,0.12)' }}
-      aria-label="colour"
-    >
-      {locked && '\u{1F512}'}
-    </button>
-  )
+function verdict(t) {
+  if (t.count === 0) return { face: '\u{1F642}', text: 'A quiet week, nothing logged yet.' }
+  if (t.sad === 0 && t.happy >= 5) return { face: '\u{1F31F}', text: 'A superstar week! Not a single sad face.' }
+  if (t.points >= 12) return { face: '\u{1F600}', text: 'A brilliant week, loads of lovely behaviour.' }
+  if (t.points >= 4) return { face: '\u{1F642}', text: 'A good week overall, well done.' }
+  if (t.points >= 0) return { face: '\u{1F610}', text: 'A bit of a mixed week, ups and downs.' }
+  return { face: '\u{1F614}', text: 'A tricky week. Tomorrow is a fresh start.' }
 }
 
-function Chip({ label, on, onClick }) {
+export default function Summary({ child, onBack }) {
+  const weeks = useMemo(() => {
+    const present = [...new Set((child.events || []).map((e) => e.week))].sort().reverse()
+    const cur = weekKey()
+    if (!present.includes(cur)) present.unshift(cur)
+    return present
+  }, [child.events])
+
+  const [wk, setWk] = useState(weeks[0])
+  const t = tallyWeek(child.events, wk)
+  const coins = coinsFromWeek(child.events, wk)
+  const v = verdict(t)
+  const isCurrent = wk === weekKey()
+
+  const sorted = Object.entries(t.byCategory)
+    .map(([id, n]) => ({ b: behaviourById(id), n }))
+    .filter((x) => x.b)
+    .sort((a, b) => b.n - a.n)
+  const positives = sorted.filter((x) => x.b.points >= 0)
+  const negatives = sorted.filter((x) => x.b.points < 0)
+
+  const idx = weeks.indexOf(wk)
+
   return (
-    <button onClick={onClick} className={`chip ${on ? 'chip-on' : ''}`}>
-      {label}
-    </button>
-  )
-}
-
-export default function AvatarBuilder({ value, onChange, owned = [], showItems = true }) {
-  const [tab, setTab] = useState('skin')
-  const [section, setSection] = useState('face') // 'face' | 'items'
-  const set = (patch) => onChange({ ...value, ...patch })
-
-  const ownsFunHair = owned.includes('haircolour')
-  const ownedItems = REWARDS.filter((r) => r.type === 'avatar' && owned.includes(r.id))
-  const slots = ['hat', 'glasses', 'earrings', 'necklace']
-  const slotItems = (slot) => ownedItems.filter((r) => r.field === slot)
-  const hasItems = ownedItems.some((r) => slots.includes(r.field))
-
-  return (
-    <div>
-      <div className="flex flex-col items-center">
-        <div className="bg-cream rounded-full p-2 animate-floaty" style={{ boxShadow: '0 8px 0 rgba(0,0,0,0.06)' }}>
-          <Avatar config={value} size={180} ring />
-        </div>
-        <button className="btn-ghost mt-3 text-sm" onClick={() => onChange({ ...randomAvatar(), ...pickItems(value) })}>
-          🎲 Surprise me
+    <div className="max-w-xl mx-auto px-4 py-5">
+      <div className="flex items-center justify-between mb-4">
+        <button className="btn-ghost py-2 px-4" onClick={onBack}>
+          {'\u2190'} Back
         </button>
+        <h1 className="font-display text-2xl font-extrabold text-white drop-shadow">{child.name}'s week</h1>
+        <span className="w-16" />
       </div>
 
-      {showItems && (
-        <div className="flex justify-center gap-2 mt-4">
-          <button className={`chip ${section === 'face' ? 'chip-on' : ''}`} onClick={() => setSection('face')}>
-            Face
+      <div className="card p-4 mb-4">
+        <div className="flex items-center justify-between">
+          <button
+            className="btn-ghost py-1 px-3 disabled:opacity-30"
+            disabled={idx >= weeks.length - 1}
+            onClick={() => setWk(weeks[idx + 1])}
+          >
+            {'\u2190'}
           </button>
-          <button className={`chip ${section === 'items' ? 'chip-on' : ''}`} onClick={() => setSection('items')}>
-            Items {hasItems ? '' : '\u{1F512}'}
+          <div className="text-center">
+            <div className="font-display font-extrabold">{weekLabel(wk)}</div>
+            <div className="text-xs font-bold text-ink/50">{isCurrent ? 'This week so far' : 'Finished week'}</div>
+          </div>
+          <button className="btn-ghost py-1 px-3 disabled:opacity-30" disabled={idx <= 0} onClick={() => setWk(weeks[idx - 1])}>
+            {'\u2192'}
           </button>
         </div>
-      )}
+      </div>
 
-      {section === 'face' ? (
-        <>
-          <div className="flex flex-wrap justify-center gap-2 mt-4">
-            {FACE_TABS.map((t) => (
-              <Chip key={t.id} label={t.label} on={tab === t.id} onClick={() => setTab(t.id)} />
-            ))}
-          </div>
-
-          <div className="mt-4 min-h-[96px] flex flex-wrap gap-2 justify-center items-center">
-            {tab === 'skin' &&
-              SKIN_TONES.map((s) => <Swatch key={s.id} hex={s.hex} on={value.skin === s.id} onClick={() => set({ skin: s.id })} />)}
-
-            {tab === 'hair' &&
-              HAIR_STYLES.map((h) => <Chip key={h.id} label={h.name} on={value.hair === h.id} onClick={() => set({ hair: h.id })} />)}
-
-            {tab === 'colour' && (
-              <>
-                {BASIC_HAIR_COLORS.map((c) => (
-                  <Swatch key={c.id} hex={c.hex} on={value.hairColor === c.id} onClick={() => set({ hairColor: c.id })} />
-                ))}
-                {FUN_HAIR_COLORS.map((c) => (
-                  <Swatch
-                    key={c.id}
-                    hex={c.hex}
-                    on={value.hairColor === c.id}
-                    locked={!ownsFunHair}
-                    onClick={() => ownsFunHair && set({ hairColor: c.id })}
-                  />
-                ))}
-                {!ownsFunHair && <p className="w-full text-center text-xs text-ink/50 font-bold">Unlock fun colours in the shop</p>}
-              </>
-            )}
-
-            {tab === 'eyes' &&
-              EYE_STYLES.map((e) => <Chip key={e.id} label={e.name} on={value.eyes === e.id} onClick={() => set({ eyes: e.id })} />)}
-
-            {tab === 'mouth' &&
-              MOUTH_STYLES.map((m) => <Chip key={m.id} label={m.name} on={value.mouth === m.id} onClick={() => set({ mouth: m.id })} />)}
-
-            {tab === 'cheeks' && (
-              <>
-                <Chip label="Rosy cheeks" on={value.cheeks !== false} onClick={() => set({ cheeks: true })} />
-                <Chip label="No cheeks" on={value.cheeks === false} onClick={() => set({ cheeks: false })} />
-              </>
-            )}
-
-            {tab === 'shirt' &&
-              SHIRT_COLORS.map((c) => <Swatch key={c.id} hex={c.hex} on={value.shirt === c.id} onClick={() => set({ shirt: c.id })} />)}
-          </div>
-        </>
-      ) : (
-        <div className="mt-4 space-y-3">
-          {!hasItems && (
-            <p className="text-center text-ink/50 font-bold py-6">No items yet. Earn coins, then buy hats, crowns and jewellery in the shop!</p>
-          )}
-          {slots.map((slot) => {
-            const items = slotItems(slot)
-            if (!items.length) return null
-            const label = { hat: 'Hats', glasses: 'Glasses', earrings: 'Earrings', necklace: 'Necklaces' }[slot]
-            return (
-              <div key={slot}>
-                <div className="font-display font-bold text-ink/60 text-sm mb-1">{label}</div>
-                <div className="flex flex-wrap gap-2">
-                  <button className={`chip ${!value[slot] ? 'chip-on' : ''}`} onClick={() => set({ [slot]: null })}>
-                    None
-                  </button>
-                  {items.map((r) => (
-                    <button
-                      key={r.id}
-                      className={`chip ${value[slot] === r.unlocks ? 'chip-on' : ''}`}
-                      onClick={() => set({ [slot]: r.unlocks })}
-                    >
-                      {r.emoji} {r.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )
-          })}
+      <div className="card p-5 mb-4 text-center">
+        <div className="flex justify-center mb-2">
+          <Avatar config={child.avatar} size={120} ring />
         </div>
-      )}
+        <div className="text-5xl mb-1">{v.face}</div>
+        <p className="font-display font-extrabold text-lg">{v.text}</p>
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          <Stat label="Happy" value={t.happy} colour="text-grassDark" emoji="😀" />
+          <Stat label="Sad" value={t.sad} colour="text-coral" emoji="😞" />
+          <Stat label={isCurrent ? 'Coins if paid now' : 'Coins earned'} value={coins} colour="text-sunnyDark" coin />
+        </div>
+      </div>
+
+      <Breakdown title={`Lovely things \u{1F31F}`} rows={positives} positive />
+      <Breakdown title={`Things to work on \u{1F4AA}`} rows={negatives} />
+      {t.count === 0 && <p className="text-center text-white font-bold drop-shadow">Nothing logged for this week yet.</p>}
     </div>
   )
 }
 
-// keep equipped items when shuffling the face
-function pickItems(v) {
-  return { hat: v.hat, glasses: v.glasses, earrings: v.earrings, necklace: v.necklace, shirt: v.shirt, cheeks: v.cheeks }
+function Stat({ label, value, colour, emoji, coin }) {
+  return (
+    <div className="bg-cream rounded-2xl py-3">
+      <div className={`font-display text-3xl font-extrabold ${colour} flex items-center justify-center gap-1`}>
+        {coin && <Coin size={22} />}
+        {value}
+      </div>
+      <div className="text-xs font-bold text-ink/50">{label}</div>
+    </div>
+  )
+}
+
+function Breakdown({ title, rows, positive }) {
+  if (!rows.length) return null
+  return (
+    <div className="card p-4 mb-3">
+      <h3 className="font-display font-extrabold mb-2">{title}</h3>
+      <div className="space-y-1.5">
+        {rows.map(({ b, n }) => (
+          <div key={b.id} className="flex items-center gap-2">
+            <span className="text-xl">{b.emoji}</span>
+            <span className="font-bold flex-1">{b.label}</span>
+            <span className={`font-display font-extrabold ${positive ? 'text-grassDark' : 'text-coral'}`}>{'\u00D7'}{n}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }

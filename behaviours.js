@@ -1,103 +1,136 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+import { useState } from 'react'
+import { useStore } from './lib/store.jsx'
+import Avatar from './components/Avatar.jsx'
+import Dashboard from './components/Dashboard.jsx'
+import SetupChild from './components/SetupChild.jsx'
+import ChildHome from './components/ChildHome.jsx'
+import Shop from './components/Shop.jsx'
+import Summary from './components/Summary.jsx'
+import DressUp from './components/DressUp.jsx'
+import ParentArea from './components/ParentArea.jsx'
+import { randomAvatar } from './data/avatar.js'
+import { btnVars } from './components/ui.jsx'
 
-:root {
-  color-scheme: light;
+function Welcome({ onStart }) {
+  const demo = [
+    { skin: 'tan', hair: 'ponytail', hairColor: 'ginger', eyes: 'sparkle', mouth: 'grin', shirt: 'bubble', hat: 'crown' },
+    { skin: 'brown', hair: 'afro', hairColor: 'black', eyes: 'happy', mouth: 'laugh', shirt: 'grass', glasses: 'round' },
+    { skin: 'fair', hair: 'swoosh', hairColor: 'brown', eyes: 'wide', mouth: 'smile', shirt: 'sky', hat: 'cap' },
+  ]
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10 text-center">
+      <div className="flex -space-x-6 mb-6">
+        {demo.map((d, i) => (
+          <div key={i} className="bg-cream rounded-full p-1 animate-floaty" style={{ animationDelay: i * 0.4 + 's', boxShadow: '0 8px 0 rgba(0,0,0,0.06)' }}>
+            <Avatar config={d} size={110} ring />
+          </div>
+        ))}
+      </div>
+      <h1 className="font-display text-5xl font-extrabold text-white drop-shadow-md">Behaviour Buddies</h1>
+      <p className="font-display font-bold text-white/90 text-lg max-w-md mt-3 drop-shadow">
+        Reward great behaviour with happy faces, turn them into coins, and spend them in the weekly shop. Build a cartoon buddy and dress it up with what you earn.
+      </p>
+      <button className="btn3d text-xl mt-8 px-10 py-4" style={btnVars('grass')} onClick={onStart}>
+        Get started {'\u2728'}
+      </button>
+      <p className="text-white/70 font-bold text-sm mt-6">Everything stays private on this device.</p>
+    </div>
+  )
 }
 
-html,
-body,
-#root {
-  height: 100%;
+export default function App() {
+  const { state, addChild, setAvatar } = useStore()
+  const [view, setView] = useState({ name: 'home' })
+  const children = state.children
+  const child = children.find((c) => c.id === view.id)
+
+  const go = (name, id) => setView({ name, id })
+
+  if (children.length === 0 && view.name !== 'setup') {
+    return <Welcome onStart={() => setView({ name: 'setup' })} />
+  }
+
+  switch (view.name) {
+    case 'setup':
+      return (
+        <SetupChild
+          title={children.length === 0 ? 'Make your first buddy' : 'Add a buddy'}
+          initialAvatar={randomAvatar()}
+          onCancel={children.length === 0 ? null : () => setView({ name: 'home' })}
+          onSave={(name, avatar) => {
+            const id = addChild(name, avatar)
+            setView({ name: 'child', id })
+          }}
+        />
+      )
+
+    case 'child':
+      if (!child)
+        return (
+          <Dashboard
+            children={children}
+            onOpen={(id) => go('child', id)}
+            onAdd={() => setView({ name: 'setup' })}
+            onPeekShop={() => setView({ name: 'shoppreview' })}
+          />
+        )
+      return (
+        <ChildHome
+          child={child}
+          onBack={() => setView({ name: 'home' })}
+          onShop={() => go('shop', child.id)}
+          onSummary={() => go('summary', child.id)}
+          onDressUp={() => go('dressup', child.id)}
+          onParent={() => go('parent', child.id)}
+        />
+      )
+
+    case 'shop':
+      return <ShopRoute child={child} onBack={() => go('child', child.id)} />
+
+    case 'shoppreview':
+      return <Shop preview onBack={() => setView({ name: 'home' })} />
+
+    case 'summary':
+      return child ? <Summary child={child} onBack={() => go('child', child.id)} /> : null
+
+    case 'dressup':
+      return child ? (
+        <DressUp
+          child={child}
+          onCancel={() => go('child', child.id)}
+          onSave={(avatar) => {
+            setAvatar(child.id, avatar)
+            go('child', child.id)
+          }}
+        />
+      ) : null
+
+    case 'parent':
+      return (
+        <ParentArea
+          child={child}
+          onBack={() => (child ? go('child', child.id) : setView({ name: 'home' }))}
+          onDeleted={() => setView({ name: 'home' })}
+        />
+      )
+
+    default:
+      return (
+        <Dashboard
+          children={children}
+          onOpen={(id) => go('child', id)}
+          onAdd={() => setView({ name: 'setup' })}
+          onPeekShop={() => setView({ name: 'shoppreview' })}
+        />
+      )
+  }
 }
 
-body {
-  margin: 0;
-  font-family: 'Nunito', system-ui, sans-serif;
-  color: #3c3a36;
-  -webkit-tap-highlight-color: transparent;
-  background-color: #d9f2ff;
-  background-image:
-    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.85) 0 4px, transparent 5px),
-    radial-gradient(circle at 80% 22%, rgba(255, 255, 255, 0.7) 0 6px, transparent 7px),
-    radial-gradient(circle at 65% 70%, rgba(255, 255, 255, 0.6) 0 5px, transparent 6px),
-    radial-gradient(circle at 30% 85%, rgba(255, 255, 255, 0.7) 0 4px, transparent 5px),
-    linear-gradient(180deg, #bfe9ff 0%, #d9f2ff 40%, #eafff0 100%);
-  background-attachment: fixed;
-}
-
-@layer components {
-  .font-display {
-    font-family: 'Baloo 2', system-ui, sans-serif;
-  }
-
-  /* Chunky Duolingo-style button: solid colour with a darker bottom edge that
-     presses down when tapped. Colour is set per-button via the --b vars. */
-  .btn3d {
-    @apply font-display font-extrabold rounded-2xl px-5 py-3 text-white select-none;
-    background: var(--bg, #58cc02);
-    box-shadow: 0 5px 0 var(--edge, #46a302);
-    transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.15s ease;
-    border: none;
-    cursor: pointer;
-  }
-  .btn3d:active {
-    transform: translateY(4px);
-    box-shadow: 0 1px 0 var(--edge, #46a302);
-  }
-  .btn3d:disabled {
-    filter: grayscale(0.5) opacity(0.55);
-    cursor: not-allowed;
-  }
-
-  .btn-ghost {
-    @apply font-display font-bold rounded-2xl px-5 py-3 select-none bg-white text-ink;
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
-    border: 2px solid rgba(0, 0, 0, 0.06);
-    transition: transform 0.06s ease, box-shadow 0.06s ease;
-    cursor: pointer;
-  }
-  .btn-ghost:active {
-    transform: translateY(3px);
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
-  }
-
-  .card {
-    @apply bg-white rounded-3xl;
-    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.06), 0 14px 30px rgba(0, 0, 0, 0.08);
-    border: 3px solid #fff;
-  }
-
-  .chip {
-    @apply rounded-2xl px-3 py-2 font-display font-bold text-sm select-none cursor-pointer transition;
-    border: 3px solid rgba(0, 0, 0, 0.06);
-    background: #fff;
-  }
-  .chip-on {
-    border-color: #1cb0f6;
-    box-shadow: 0 0 0 3px rgba(28, 176, 246, 0.25);
-  }
-}
-
-.animate-pop {
-  animation: pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-.animate-floaty {
-  animation: floaty 3s ease-in-out infinite;
-}
-
-/* Confetti */
-.confetti-piece {
-  position: absolute;
-  width: 10px;
-  height: 14px;
-  border-radius: 2px;
-  top: -20px;
-  animation: confettiFall linear forwards;
-}
-
-/* hide number input spinners */
-input[type='number']::-webkit-inner-spin-button {
-  -webkit-appearance: none;
+// Small wrapper so Shop can use the live buy action and re-read coins each render.
+function ShopRoute({ child, onBack }) {
+  const { buy, state } = useStore()
+  const fresh = state.children.find((c) => c.id === child?.id)
+  if (!fresh) return null
+  return <Shop child={fresh} onBuy={(id) => buy(fresh.id, id)} onBack={onBack} />
 }

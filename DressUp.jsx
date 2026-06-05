@@ -1,170 +1,85 @@
 import { useState } from 'react'
-import { useStore } from '../lib/store.jsx'
-import { coinsFromWeek, weekKey } from '../lib/economy.js'
-import { Coin, btnVars } from './ui.jsx'
+import { REWARDS, TIER_ORDER, TIER_META } from '../data/rewards.js'
+import { Coin, CoinPill, Confetti, btnVars } from './ui.jsx'
 
-export default function ParentArea({ child, onBack, onDeleted }) {
-  const { state, setPin, endWeekNow, renameChild, removeChild, resetAll } = useStore()
-  const [pinInput, setPinInput] = useState(state.settings.pin || '')
-  const [name, setName] = useState(child?.name || '')
-  const [confirmDelete, setConfirmDelete] = useState(false)
-  const [confirmReset, setConfirmReset] = useState(false)
-  const [paidNote, setPaidNote] = useState(0)
+export default function Shop({ child, onBuy, onBack, preview = false }) {
+  const [flash, setFlash] = useState(null)
+  const [confetti, setConfetti] = useState(false)
 
-  const wk = weekKey()
-  const earned = child ? coinsFromWeek(child.events, wk) : 0
-  const paidSoFar = child ? (child.paidByWeek || {})[wk] || 0 : 0
-  const unpaid = Math.max(0, earned - paidSoFar)
+  const buy = (r) => {
+    const ok = onBuy(r.id)
+    if (ok) {
+      setFlash(r.id)
+      setConfetti(true)
+      setTimeout(() => setConfetti(false), 1600)
+      setTimeout(() => setFlash(null), 900)
+    }
+  }
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-5">
+    <div className="max-w-3xl mx-auto px-4 py-5">
+      <Confetti run={confetti} />
       <div className="flex items-center justify-between mb-4">
         <button className="btn-ghost py-2 px-4" onClick={onBack}>
           {'\u2190'} Back
         </button>
-        <h1 className="font-display text-2xl font-extrabold text-white drop-shadow">Grown-up settings</h1>
-        <span className="w-16" />
+        <h1 className="font-display text-3xl font-extrabold text-white drop-shadow">{'\u{1F6D2}'} Shop</h1>
+        {preview ? <span className="w-16" /> : <CoinPill amount={child.coins} />}
       </div>
 
-      {child && (
-        <div className="card p-4 mb-4">
-          <h3 className="font-display font-extrabold mb-2">{child.name}</h3>
-          <label className="font-bold text-ink/60 text-sm">Name</label>
-          <input
-            value={name}
-            maxLength={16}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={() => renameChild(child.id, name)}
-            className="w-full mt-1 mb-3 font-display font-bold rounded-2xl py-2 px-3 border-4 border-sky/30 outline-none focus:border-sky"
-          />
-
-          <div className="bg-cream rounded-2xl p-3 mb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-display font-extrabold">Pay out coins</div>
-                <div className="text-xs text-ink/55 font-semibold">
-                  {unpaid > 0 ? (
-                    <span>
-                      Bank this week's new points{' '}
-                      <span className="inline-flex items-center gap-0.5 font-extrabold text-sunnyDark">
-                        (<Coin size={14} />
-                        {unpaid})
-                      </span>
-                    </span>
-                  ) : (
-                    <span>Nothing new to pay out right now</span>
-                  )}
-                </div>
-              </div>
-              <button
-                className="btn3d py-2 px-4 text-sm"
-                style={btnVars('sunny')}
-                disabled={unpaid === 0}
-                onClick={() => {
-                  const added = endWeekNow(child.id)
-                  if (added > 0) {
-                    setPaidNote(added)
-                    setTimeout(() => setPaidNote(0), 2500)
-                  }
-                }}
-              >
-                Pay out
-              </button>
-            </div>
-            {paidNote > 0 && (
-              <p className="text-grassDark font-bold text-sm mt-2">
-                Added {paidNote} {paidNote === 1 ? 'coin' : 'coins'}! 🎉
-              </p>
-            )}
-            <p className="text-[11px] text-ink/45 font-semibold mt-2">
-              Coins also bank on their own every Monday. You can pay out as often as you like, even more than once a day. Each buddy only ever banks coins they have newly earned.
-            </p>
-          </div>
-
-          {!confirmDelete ? (
-            <button className="btn-ghost w-full text-coral text-sm" onClick={() => setConfirmDelete(true)}>
-              Delete {child.name}
-            </button>
-          ) : (
-            <div className="flex gap-2">
-              <button className="btn-ghost flex-1 text-sm" onClick={() => setConfirmDelete(false)}>
-                Keep
-              </button>
-              <button
-                className="btn3d flex-1 text-sm"
-                style={btnVars('coral')}
-                onClick={() => {
-                  removeChild(child.id)
-                  onDeleted()
-                }}
-              >
-                Yes, delete
-              </button>
-            </div>
-          )}
+      {preview && (
+        <div className="card p-4 mb-5 text-center">
+          <p className="font-display font-extrabold text-lg">Here's everything you could win! {'\u2728'}</p>
+          <p className="text-sm text-ink/60 font-semibold">Earn happy faces, turn them into coins, then come back to spend them.</p>
         </div>
       )}
 
-      <div className="card p-4 mb-4">
-        <h3 className="font-display font-extrabold mb-1">Grown-up PIN</h3>
-        <p className="text-xs text-ink/55 font-semibold mb-2">
-          Optional. When set, giving faces asks for this 4-digit PIN so children can't award their own.
-        </p>
-        <div className="flex gap-2">
-          <input
-            inputMode="numeric"
-            value={pinInput}
-            maxLength={4}
-            placeholder="No PIN set"
-            onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
-            className="flex-1 text-center text-xl tracking-[0.4em] font-display font-extrabold rounded-2xl py-2 border-4 border-sky/30 outline-none focus:border-sky"
-          />
-          <button
-            className="btn3d px-4 text-sm"
-            style={btnVars('grass')}
-            onClick={() => setPin(pinInput.length === 4 ? pinInput : null)}
-          >
-            Save
-          </button>
-          {state.settings.pin && (
-            <button
-              className="btn-ghost px-4 text-sm"
-              onClick={() => {
-                setPin(null)
-                setPinInput('')
-              }}
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="card p-4">
-        <h3 className="font-display font-extrabold mb-1">Reset everything</h3>
-        <p className="text-xs text-ink/55 font-semibold mb-2">Removes all buddies, coins and history from this device.</p>
-        {!confirmReset ? (
-          <button className="btn-ghost w-full text-coral text-sm" onClick={() => setConfirmReset(true)}>
-            Reset app
-          </button>
-        ) : (
-          <div className="flex gap-2">
-            <button className="btn-ghost flex-1 text-sm" onClick={() => setConfirmReset(false)}>
-              Cancel
-            </button>
-            <button
-              className="btn3d flex-1 text-sm"
-              style={btnVars('coral')}
-              onClick={() => {
-                resetAll()
-                onDeleted()
-              }}
-            >
-              Wipe it all
-            </button>
-          </div>
-        )}
-      </div>
+      {TIER_ORDER.map((tier) => {
+        const meta = TIER_META[tier]
+        const items = REWARDS.filter((r) => r.tier === tier && !r.starter)
+        if (!items.length) return null
+        return (
+          <section key={tier} className="mb-6">
+            <div className="flex items-baseline gap-2 mb-2 px-1">
+              <h2 className="font-display text-xl font-extrabold text-white drop-shadow">{meta.label}</h2>
+              <span className="text-white/80 font-bold text-sm">{meta.blurb}</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {items.map((r) => {
+                const owned = !preview && r.type === 'avatar' && child.owned.includes(r.id)
+                const affordable = !preview && child.coins >= r.price
+                const justBought = flash === r.id
+                return (
+                  <div key={r.id} className={`card p-3 flex flex-col ${justBought ? 'animate-pop ring-4 ring-grass' : ''}`}>
+                    <div className="text-4xl text-center mt-1 mb-1">{r.emoji}</div>
+                    <div className="font-display font-extrabold text-center leading-tight">{r.name}</div>
+                    <div className="text-xs text-ink/55 font-semibold text-center mb-2 flex-1">{r.desc}</div>
+                    {preview ? (
+                      <div
+                        className="text-center py-2 text-sm font-display font-extrabold rounded-2xl flex items-center justify-center gap-1"
+                        style={{ background: '#fff6d6', color: '#b97f00' }}
+                      >
+                        <Coin size={18} /> {r.price}
+                      </div>
+                    ) : owned ? (
+                      <div className="btn-ghost text-center py-2 text-sm text-grassDark">{'\u2713'} Owned</div>
+                    ) : (
+                      <button
+                        className="btn3d py-2 text-sm flex items-center justify-center gap-1"
+                        style={btnVars(affordable ? meta.colour : 'grass')}
+                        disabled={!affordable}
+                        onClick={() => buy(r)}
+                      >
+                        <Coin size={18} /> {r.price}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )
+      })}
     </div>
   )
 }

@@ -1,68 +1,33 @@
-// THE SHOP CATALOGUE
-// ------------------
-// Two kinds of reward:
-//   'treat'  = a real-life reward (you grant it in the real world)
-//   'avatar' = an item the child equips on their buddy (hats, jewellery, etc.)
-//
-// Prices are in COINS. Coins are earned from positive points (see economy.js).
-// A typical good week nets roughly 15-25 coins, so:
-//   - cheap avatar bits are affordable most weeks
-//   - small treats take a week
-//   - the big stuff needs saving across several weeks
-//
-// `unlocks` on an avatar item is the key the avatar system understands.
-// `field` says which slot it goes in (accessory layer / hairColor / etc).
+// Behaviour categories. Each happy/sad face is tagged with one of these so you
+// can see WHY a point was given, and so the weekly summary can break it down.
+// Points are intentionally simple: most things are worth 1, the bigger stuff 2.
 
-export const REWARDS = [
-  // ---------- AVATAR ITEMS (cheaper) ----------
-  { id: 'bow',         name: 'Hair bow',          emoji: '\u{1F380}', type: 'avatar', tier: 'Avatar',  price: 8,  field: 'accessory', unlocks: 'bow',         desc: 'A cute bow for your buddy' },
-  { id: 'haircolour',  name: 'New hair colour',   emoji: '\u{1F3A8}', type: 'avatar', tier: 'Avatar',  price: 8,  field: 'hairColorPack', unlocks: 'fun',     desc: 'Unlock pink, blue, mint & purple hair' },
-  { id: 'roundglass',  name: 'Round glasses',     emoji: '\u{1F453}', type: 'avatar', tier: 'Avatar',  price: 10, field: 'glasses',   unlocks: 'round',       desc: 'Smart little round specs' },
-  { id: 'headband',    name: 'Sporty headband',   emoji: '\u{1F3BD}', type: 'avatar', tier: 'Avatar',  price: 0,  field: 'hat',       unlocks: 'headband',    desc: 'A comfy headband', starter: true },
-  { id: 'beanie',      name: 'Cosy beanie',       emoji: '\u{1F9E2}', type: 'avatar', tier: 'Avatar',  price: 0,  field: 'hat',       unlocks: 'beanie',      desc: 'A warm woolly hat', starter: true },
-  { id: 'cap',         name: 'Baseball cap',      emoji: '\u{1F9E2}', type: 'avatar', tier: 'Avatar',  price: 0,  field: 'hat',       unlocks: 'cap',         desc: 'Cool cap, worn forwards', starter: true },
-  { id: 'sunnies',     name: 'Cool sunglasses',   emoji: '\u{1F576}', type: 'avatar', tier: 'Avatar',  price: 12, field: 'glasses',   unlocks: 'sunnies',     desc: 'Look extra cool in the sun' },
-  { id: 'partyhat',    name: 'Party hat',         emoji: '\u{1F389}', type: 'avatar', tier: 'Avatar',  price: 12, field: 'hat',       unlocks: 'party',       desc: 'For a celebration!' },
-  { id: 'earrings',    name: 'Sparkle earrings',  emoji: '\u{1F48E}', type: 'avatar', tier: 'Avatar',  price: 12, field: 'earrings',  unlocks: 'studs',       desc: 'Twinkly little earrings' },
-  { id: 'necklace',    name: 'Bead necklace',     emoji: '\u{1F4FF}', type: 'avatar', tier: 'Avatar',  price: 14, field: 'necklace',  unlocks: 'beads',       desc: 'A string of pretty beads' },
-  { id: 'flowercrown', name: 'Flower crown',      emoji: '\u{1F33C}', type: 'avatar', tier: 'Avatar',  price: 18, field: 'hat',       unlocks: 'flowers',     desc: 'A ring of flowers for your hair' },
-  { id: 'wizardhat',   name: 'Wizard hat',        emoji: '\u{1FA84}', type: 'avatar', tier: 'Avatar',  price: 20, field: 'hat',       unlocks: 'wizard',      desc: 'Magical and pointy' },
-  { id: 'crown',       name: 'Golden crown',      emoji: '\u{1F451}', type: 'avatar', tier: 'Avatar',  price: 30, field: 'hat',       unlocks: 'crown',       desc: 'Rule the kingdom in style' },
-  { id: 'jewelneck',   name: 'Jewelled necklace', emoji: '\u{1F48D}', type: 'avatar', tier: 'Avatar',  price: 35, field: 'necklace',  unlocks: 'jewel',       desc: 'The fanciest necklace going' },
-  { id: 'halo',        name: 'Golden halo',       emoji: '\u{1F607}', type: 'avatar', tier: 'Avatar',  price: 40, field: 'hat',       unlocks: 'halo',        desc: 'For a truly angelic week' },
-
-  // ---------- SMALL TREATS ----------
-  { id: 'music',       name: 'Pick the car music', emoji: '\u{1F3B5}', type: 'treat', tier: 'Small',   price: 12, desc: 'Choose what we listen to in the car' },
-  { id: 'choc',        name: 'Chocolate snack',    emoji: '\u{1F36B}', type: 'treat', tier: 'Small',   price: 15, desc: 'A chocolatey treat after tea' },
-  { id: 'film',        name: "Choose tonight's film", emoji: '\u{1F37F}', type: 'treat', tier: 'Small', price: 18, desc: 'You pick the family film' },
-  { id: 'icecream',    name: 'Ice cream for pudding', emoji: '\u{1F368}', type: 'treat', tier: 'Small', price: 20, desc: 'Ice cream for dessert tonight' },
-  { id: 'screen',      name: '15 mins extra screen', emoji: '\u{1F4F1}', type: 'treat', tier: 'Small',  price: 20, desc: 'A bonus 15 minutes of screen time' },
-
-  // ---------- MEDIUM TREATS ----------
-  { id: 'bake',        name: 'Bake together',      emoji: '\u{1F9C1}', type: 'treat', tier: 'Medium',  price: 30, desc: 'We bake something yummy together' },
-  { id: 'dinner',      name: 'Pick the dinner',    emoji: '\u{1F35D}', type: 'treat', tier: 'Medium',  price: 35, desc: 'Choose what the family has for tea' },
-  { id: 'latestay15',  name: 'Stay up 15 mins late', emoji: '\u{1F319}', type: 'treat', tier: 'Medium', price: 40, desc: 'Bedtime pushed back 15 minutes' },
-
-  // ---------- BIG TREATS ----------
-  { id: 'latestay30',  name: 'Stay up 30 mins late', emoji: '\u{1F31F}', type: 'treat', tier: 'Big',    price: 70, desc: 'A proper late night, 30 minutes extra' },
-  { id: 'pocket',      name: 'Pocket money bonus',  emoji: '\u{1F4B0}', type: 'treat', tier: 'Big',     price: 80, desc: 'A little extra pocket money this week' },
-  { id: 'cinema',      name: 'Trip to the cinema',  emoji: '\u{1F3AC}', type: 'treat', tier: 'Big',     price: 90, desc: 'A film at the big screen' },
-  { id: 'friend',      name: 'Friend over to play', emoji: '\u{1F46B}', type: 'treat', tier: 'Big',     price: 100, desc: 'Invite a friend round to play' },
-  { id: 'dayout',      name: 'Pick a day out',      emoji: '\u{1F3A1}', type: 'treat', tier: 'Big',     price: 120, desc: 'Choose a family day out' },
+export const POSITIVE = [
+  { id: 'kind',      label: 'Kind & caring',     emoji: '\u{1F970}', points: 2, blurb: 'Looked after someone or did something thoughtful' },
+  { id: 'listen',    label: 'Good listening',    emoji: '\u{1F442}', points: 1, blurb: 'Listened and did as asked first time' },
+  { id: 'tidy',      label: 'Tidied up',         emoji: '\u{1F9F9}', points: 1, blurb: 'Put toys or things away nicely' },
+  { id: 'school',    label: 'Great schoolwork',  emoji: '\u{1F4DA}', points: 2, blurb: 'Tried hard at homework, reading or school' },
+  { id: 'helped',    label: 'Helped out',        emoji: '\u{1F91D}', points: 1, blurb: 'Helped with a job around the house' },
+  { id: 'manners',   label: 'Lovely manners',    emoji: '\u{1F60A}', points: 1, blurb: 'Said please, thank you, and was polite' },
+  { id: 'ready',     label: 'Got ready nicely',  emoji: '\u{1FAA5}', points: 1, blurb: 'Teeth, getting dressed or bedtime with no fuss' },
+  { id: 'brave',     label: 'Brave & tried',     emoji: '\u{1F981}', points: 2, blurb: 'Tried something new or had a go at something hard' },
+  { id: 'shared',    label: 'Shared nicely',     emoji: '\u{1F9F8}', points: 1, blurb: 'Took turns or shared without being asked' },
+  { id: 'calm',      label: 'Stayed calm',       emoji: '\u{1F9D8}', points: 1, blurb: 'Kept calm when things were tricky' },
 ]
 
-export const TIER_ORDER = ['Avatar', 'Small', 'Medium', 'Big']
+export const NEGATIVE = [
+  { id: 'nolisten',  label: "Didn't listen",     emoji: '\u{1F648}', points: -1, blurb: 'Ignored what was asked' },
+  { id: 'tantrum',   label: 'Shouting / tantrum',emoji: '\u{1F62D}', points: -2, blurb: 'Big upset, shouting or screaming' },
+  { id: 'hurt',      label: 'Hurt someone',      emoji: '\u{1F915}', points: -2, blurb: 'Hit, kicked or hurt another person' },
+  { id: 'untidy',    label: "Didn't tidy up",    emoji: '\u{1F4A5}', points: -1, blurb: 'Left a big mess and would not clear it' },
+  { id: 'cheeky',    label: 'Cheeky / rude',     emoji: '\u{1F61D}', points: -1, blurb: 'Answered back or was rude' },
+  { id: 'noready',   label: "Wouldn't get ready",emoji: '\u{1F634}', points: -1, blurb: 'Refused teeth, dressing or bedtime' },
+  { id: 'fib',       label: 'Told a fib',        emoji: '\u{1F92F}', points: -2, blurb: 'Did not tell the truth' },
+  { id: 'mean',      label: 'Mean to sibling',   emoji: '\u{1F620}', points: -2, blurb: 'Unkind to a brother or sister' },
+]
 
-export const TIER_META = {
-  Avatar: { label: 'Avatar shop',   blurb: 'Dress up your buddy',         colour: 'grape' },
-  Small:  { label: 'Little treats', blurb: 'Treat yourself this week',    colour: 'sky' },
-  Medium: { label: 'Big treats',    blurb: 'Worth saving a week or two',  colour: 'sunny' },
-  Big:    { label: 'Mega treats',   blurb: 'Save up for something epic',  colour: 'coral' },
+export const ALL_BEHAVIOURS = [...POSITIVE, ...NEGATIVE]
+
+export function behaviourById(id) {
+  return ALL_BEHAVIOURS.find((b) => b.id === id)
 }
-
-export function rewardById(id) {
-  return REWARDS.find((r) => r.id === id)
-}
-
-// Items every buddy starts with (plain hats), and which never appear in the shop.
-export const STARTER_ITEMS = REWARDS.filter((r) => r.starter).map((r) => r.id)
