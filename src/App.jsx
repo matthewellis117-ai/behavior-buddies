@@ -65,7 +65,15 @@ export default function App() {
       )
 
     case 'child':
-      if (!child) return <Dashboard children={children} onOpen={(id) => go('child', id)} onAdd={() => setView({ name: 'setup' })} />
+      if (!child)
+        return (
+          <Dashboard
+            children={children}
+            onOpen={(id) => go('child', id)}
+            onAdd={() => setView({ name: 'setup' })}
+            onPeekShop={() => setView({ name: 'shoppreview' })}
+          />
+        )
       return (
         <ChildHome
           child={child}
@@ -79,6 +87,9 @@ export default function App() {
 
     case 'shop':
       return <ShopRoute child={child} onBack={() => go('child', child.id)} />
+
+    case 'shoppreview':
+      return <Shop preview onBack={() => setView({ name: 'home' })} />
 
     case 'summary':
       return child ? <Summary child={child} onBack={() => go('child', child.id)} /> : null
@@ -105,7 +116,14 @@ export default function App() {
       )
 
     default:
-      return <Dashboard children={children} onOpen={(id) => go('child', id)} onAdd={() => setView({ name: 'setup' })} />
+      return (
+        <Dashboard
+          children={children}
+          onOpen={(id) => go('child', id)}
+          onAdd={() => setView({ name: 'setup' })}
+          onPeekShop={() => setView({ name: 'shoppreview' })}
+        />
+      )
   }
 }
 
