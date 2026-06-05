@@ -14,7 +14,6 @@ export const HAIR_STYLES = [
   { id: 'bald',     name: 'None' },
   { id: 'buzz',     name: 'Buzz' },
   { id: 'short',    name: 'Short' },
-  { id: 'swoosh',   name: 'Swoosh' },
   { id: 'bob',      name: 'Bob' },
   { id: 'ponytail', name: 'Ponytail' },
   { id: 'curly',    name: 'Curly' },
@@ -81,7 +80,7 @@ export function shirtHex(id) {
 export function defaultAvatar() {
   return {
     skin: 'fair',
-    hair: 'swoosh',
+    hair: 'short',
     hairColor: 'brown',
     eyes: 'happy',
     mouth: 'smile',
