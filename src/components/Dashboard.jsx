@@ -1,7 +1,7 @@
 import Avatar from './Avatar.jsx'
 import { Coin } from './ui.jsx'
 
-export default function Dashboard({ children, onOpen, onAdd }) {
+export default function Dashboard({ children, onOpen, onAdd, onPeekShop }) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       <div className="text-center mb-6">
@@ -30,6 +30,17 @@ export default function Dashboard({ children, onOpen, onAdd }) {
           <div className="font-display text-lg font-extrabold mt-2">Add a buddy</div>
         </button>
       </div>
+
+      <button
+        onClick={onPeekShop}
+        className="card w-full mt-4 p-4 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition"
+      >
+        <span className="text-3xl">{'\u{1F6D2}'}</span>
+        <span className="text-left">
+          <span className="block font-display text-lg font-extrabold leading-tight">Peek at the shop</span>
+          <span className="block text-sm text-ink/55 font-semibold leading-tight">See all the treats and items you can win</span>
+        </span>
+      </button>
     </div>
   )
 }
