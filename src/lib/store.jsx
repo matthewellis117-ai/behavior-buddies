@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { defaultAvatar } from '../data/avatar.js'
-import { rewardById } from '../data/rewards.js'
+import { rewardById, STARTER_ITEMS } from '../data/rewards.js'
 import { coinsFromWeek, makeEvent, weekKey } from './economy.js'
 
 const KEY = 'behaviour-buddies-v1'
@@ -30,27 +30,44 @@ function newChild(name, avatar) {
     avatar: avatar || defaultAvatar(),
     coins: 0,
     events: [],
-    owned: [],
+    owned: [...STARTER_ITEMS],
     purchases: [],
-    paidWeeks: [],
+    paidByWeek: {},
   }
 }
 
-// Convert any fully-finished week (earlier than the current week) into coins,
-// once. Returns true if anything changed.
+// Bring older saved buddies up to date with newer features.
+function migrateChild(c) {
+  c.owned = c.owned || []
+  for (const id of STARTER_ITEMS) if (!c.owned.includes(id)) c.owned.push(id)
+  if (!c.paidByWeek) {
+    c.paidByWeek = {}
+    for (const wk of c.paidWeeks || []) c.paidByWeek[wk] = coinsFromWeek(c.events || [], wk)
+    delete c.paidWeeks
+  }
+  if (c.avatar && c.avatar.cheeks === undefined) c.avatar.cheeks = true
+  return c
+}
+
+// Bank coins for any finished week (earlier than the current week). Pays only
+// the part not already paid out, so it is safe to run repeatedly. Returns true
+// if anything changed.
 function runPayouts(child) {
   const current = weekKey()
-  const seen = new Set(child.paidWeeks || [])
+  const paid = { ...(child.paidByWeek || {}) }
   const weeks = [...new Set((child.events || []).map((e) => e.week))]
   let changed = false
   for (const wk of weeks) {
-    if (wk < current && !seen.has(wk)) {
-      child.coins += coinsFromWeek(child.events, wk)
-      seen.add(wk)
-      changed = true
+    if (wk < current) {
+      const owed = coinsFromWeek(child.events, wk) - (paid[wk] || 0)
+      if (owed > 0) {
+        child.coins += owed
+        paid[wk] = (paid[wk] || 0) + owed
+        changed = true
+      }
     }
   }
-  if (changed) child.paidWeeks = [...seen]
+  if (changed) child.paidByWeek = paid
   return changed
 }
 
@@ -59,9 +76,9 @@ const StoreContext = createContext(null)
 export function StoreProvider({ children }) {
   const [state, setState] = useState(() => {
     const s = load()
-    let changed = false
-    for (const c of s.children) if (runPayouts(c)) changed = true
-    if (changed) save(s)
+    s.children = (s.children || []).map(migrateChild)
+    for (const c of s.children) runPayouts(c)
+    save(s)
     return s
   })
 
@@ -165,17 +182,25 @@ export function StoreProvider({ children }) {
           if (p) p.redeemed = true
         })
       },
-      // Force the current week to pay out now (the "End the week" button).
+      // Pay out this week's coins now. Pays only what has not already been paid,
+      // so a grown-up can pay out as often as they like (even twice in a day) and
+      // each child only ever banks the coins they have newly earned.
       endWeekNow(id) {
+        let added = 0
         update((s) => {
           const c = s.children.find((x) => x.id === id)
           if (!c) return
           const wk = weekKey()
-          if (!(c.paidWeeks || []).includes(wk)) {
-            c.coins += coinsFromWeek(c.events, wk)
-            c.paidWeeks = [...(c.paidWeeks || []), wk]
+          const paid = { ...(c.paidByWeek || {}) }
+          const owed = coinsFromWeek(c.events, wk) - (paid[wk] || 0)
+          if (owed > 0) {
+            c.coins += owed
+            paid[wk] = (paid[wk] || 0) + owed
+            c.paidByWeek = paid
+            added = owed
           }
         })
+        return added
       },
       setPin(pin) {
         update((s) => {
