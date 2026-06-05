@@ -18,8 +18,9 @@ export const REWARDS = [
   { id: 'bow',         name: 'Hair bow',          emoji: '\u{1F380}', type: 'avatar', tier: 'Avatar',  price: 8,  field: 'accessory', unlocks: 'bow',         desc: 'A cute bow for your buddy' },
   { id: 'haircolour',  name: 'New hair colour',   emoji: '\u{1F3A8}', type: 'avatar', tier: 'Avatar',  price: 8,  field: 'hairColorPack', unlocks: 'fun',     desc: 'Unlock pink, blue, mint & purple hair' },
   { id: 'roundglass',  name: 'Round glasses',     emoji: '\u{1F453}', type: 'avatar', tier: 'Avatar',  price: 10, field: 'glasses',   unlocks: 'round',       desc: 'Smart little round specs' },
-  { id: 'beanie',      name: 'Cosy beanie',       emoji: '\u{1F9E2}', type: 'avatar', tier: 'Avatar',  price: 10, field: 'hat',       unlocks: 'beanie',      desc: 'A warm woolly hat' },
-  { id: 'cap',         name: 'Baseball cap',      emoji: '\u{1F9E2}', type: 'avatar', tier: 'Avatar',  price: 10, field: 'hat',       unlocks: 'cap',         desc: 'Cool cap, worn forwards' },
+  { id: 'headband',    name: 'Sporty headband',   emoji: '\u{1F3BD}', type: 'avatar', tier: 'Avatar',  price: 0,  field: 'hat',       unlocks: 'headband',    desc: 'A comfy headband', starter: true },
+  { id: 'beanie',      name: 'Cosy beanie',       emoji: '\u{1F9E2}', type: 'avatar', tier: 'Avatar',  price: 0,  field: 'hat',       unlocks: 'beanie',      desc: 'A warm woolly hat', starter: true },
+  { id: 'cap',         name: 'Baseball cap',      emoji: '\u{1F9E2}', type: 'avatar', tier: 'Avatar',  price: 0,  field: 'hat',       unlocks: 'cap',         desc: 'Cool cap, worn forwards', starter: true },
   { id: 'sunnies',     name: 'Cool sunglasses',   emoji: '\u{1F576}', type: 'avatar', tier: 'Avatar',  price: 12, field: 'glasses',   unlocks: 'sunnies',     desc: 'Look extra cool in the sun' },
   { id: 'partyhat',    name: 'Party hat',         emoji: '\u{1F389}', type: 'avatar', tier: 'Avatar',  price: 12, field: 'hat',       unlocks: 'party',       desc: 'For a celebration!' },
   { id: 'earrings',    name: 'Sparkle earrings',  emoji: '\u{1F48E}', type: 'avatar', tier: 'Avatar',  price: 12, field: 'earrings',  unlocks: 'studs',       desc: 'Twinkly little earrings' },
@@ -38,18 +39,15 @@ export const REWARDS = [
   { id: 'screen',      name: '15 mins extra screen', emoji: '\u{1F4F1}', type: 'treat', tier: 'Small',  price: 20, desc: 'A bonus 15 minutes of screen time' },
 
   // ---------- MEDIUM TREATS ----------
-  { id: 'boardgame',   name: 'Board game night',   emoji: '\u{1F3B2}', type: 'treat', tier: 'Medium',  price: 25, desc: 'You choose the game for game night' },
   { id: 'bake',        name: 'Bake together',      emoji: '\u{1F9C1}', type: 'treat', tier: 'Medium',  price: 30, desc: 'We bake something yummy together' },
   { id: 'dinner',      name: 'Pick the dinner',    emoji: '\u{1F35D}', type: 'treat', tier: 'Medium',  price: 35, desc: 'Choose what the family has for tea' },
   { id: 'latestay15',  name: 'Stay up 15 mins late', emoji: '\u{1F319}', type: 'treat', tier: 'Medium', price: 40, desc: 'Bedtime pushed back 15 minutes' },
-  { id: 'friend',      name: 'Friend over to play', emoji: '\u{1F46B}', type: 'treat', tier: 'Medium',  price: 45, desc: 'Invite a friend round to play' },
 
   // ---------- BIG TREATS ----------
   { id: 'latestay30',  name: 'Stay up 30 mins late', emoji: '\u{1F31F}', type: 'treat', tier: 'Big',    price: 70, desc: 'A proper late night, 30 minutes extra' },
   { id: 'pocket',      name: 'Pocket money bonus',  emoji: '\u{1F4B0}', type: 'treat', tier: 'Big',     price: 80, desc: 'A little extra pocket money this week' },
   { id: 'cinema',      name: 'Trip to the cinema',  emoji: '\u{1F3AC}', type: 'treat', tier: 'Big',     price: 90, desc: 'A film at the big screen' },
-  { id: 'toy',         name: 'Choose a small toy',  emoji: '\u{1F9F8}', type: 'treat', tier: 'Big',     price: 100, desc: 'Pick a small toy (set your own budget)' },
-  { id: 'sleepover',   name: 'Sleepover',           emoji: '\u{26FA}', type: 'treat', tier: 'Big',     price: 110, desc: 'Have a friend stay the night' },
+  { id: 'friend',      name: 'Friend over to play', emoji: '\u{1F46B}', type: 'treat', tier: 'Big',     price: 100, desc: 'Invite a friend round to play' },
   { id: 'dayout',      name: 'Pick a day out',      emoji: '\u{1F3A1}', type: 'treat', tier: 'Big',     price: 120, desc: 'Choose a family day out' },
 ]
 
@@ -65,3 +63,6 @@ export const TIER_META = {
 export function rewardById(id) {
   return REWARDS.find((r) => r.id === id)
 }
+
+// Items every buddy starts with (plain hats), and which never appear in the shop.
+export const STARTER_ITEMS = REWARDS.filter((r) => r.starter).map((r) => r.id)
