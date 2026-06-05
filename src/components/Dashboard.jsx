@@ -7,6 +7,9 @@ export default function Dashboard({ children, onOpen, onAdd, onPeekShop }) {
       <div className="text-center mb-6">
         <h1 className="font-display text-4xl font-extrabold text-white drop-shadow-md">Behaviour Buddies</h1>
         <p className="font-display font-bold text-white/85 drop-shadow">Tap a buddy to give faces and shop</p>
+        <p className="text-white/80 font-semibold text-sm mt-2 max-w-md mx-auto drop-shadow">
+          An app made by Thea, Freya &amp; Ezra to make sure we&apos;re all as good as our Daddy! {'\u{1F49B}'}
+        </p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
