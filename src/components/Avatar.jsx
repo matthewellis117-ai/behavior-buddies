@@ -24,7 +24,7 @@ function HairBack({ style, c }) {
   const d = shade(c, 0.18)
   switch (style) {
     case 'long':
-      return <path d="M54 92 C40 132 46 196 64 220 L176 220 C194 196 200 132 186 92 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
+      return <path d="M48 100 C32 146 36 210 54 234 L186 234 C204 210 208 146 192 100 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
     case 'bob':
       return <path d="M56 94 C48 124 52 162 66 178 L174 178 C188 162 192 124 184 94 Z" fill={c} stroke={OUTLINE} strokeWidth="2" />
     case 'ponytail':
@@ -51,17 +51,10 @@ function HairFront({ style, c }) {
   const CAP = 'M52 118 C48 62 92 46 120 46 C148 46 192 62 188 118 C176 102 150 94 120 94 C90 94 64 102 52 118 Z'
   switch (style) {
     case 'buzz':
-      // Tighter to the scalp, but still covers the crown.
-      return <path d="M56 114 C54 72 92 58 120 58 C148 58 186 72 184 114 C172 100 150 92 120 92 C90 92 68 100 56 114 Z" {...common} />
+      // Short and close to the scalp, but the whole crown is covered.
+      return <path d="M56 112 C54 56 92 48 120 48 C148 48 186 56 184 112 C172 100 150 92 120 92 C90 92 68 100 56 112 Z" {...common} />
     case 'short':
       return <path d={CAP} {...common} />
-    case 'swoosh':
-      return (
-        <g>
-          <path d={CAP} {...common} />
-          <path d="M120 94 C152 86 184 92 188 112 C150 90 120 108 90 104 C102 96 110 95 120 94 Z" fill={d} />
-        </g>
-      )
     case 'bob':
       return <path d={CAP} {...common} />
     case 'ponytail':
@@ -69,15 +62,14 @@ function HairFront({ style, c }) {
     case 'curly':
       return (
         <g {...common}>
-          <circle cx="70" cy="90" r="24" /><circle cx="96" cy="70" r="26" />
-          <circle cx="120" cy="62" r="26" /><circle cx="144" cy="70" r="26" />
-          <circle cx="170" cy="90" r="24" /><circle cx="58" cy="106" r="18" />
-          <circle cx="182" cy="106" r="18" />
-          <circle cx="120" cy="96" r="26" />
+          <circle cx="96" cy="60" r="23" /><circle cx="120" cy="56" r="23" /><circle cx="144" cy="60" r="23" />
+          <circle cx="74" cy="78" r="21" /><circle cx="166" cy="78" r="21" />
+          <circle cx="62" cy="96" r="15" /><circle cx="178" cy="96" r="15" />
+          <circle cx="120" cy="78" r="18" />
         </g>
       )
     case 'afro':
-      return <path d="M50 118 C44 50 196 50 190 118 C178 96 150 88 120 88 C90 88 62 96 50 118 Z" {...common} />
+      return <path d="M46 120 C40 54 90 42 120 42 C150 42 200 54 194 120 C178 94 150 86 120 86 C90 86 62 94 46 120 Z" {...common} />
     case 'bun':
       return (
         <g>
@@ -89,10 +81,10 @@ function HairFront({ style, c }) {
       return <path d={CAP} {...common} />
     case 'spiky':
       return (
-        <g {...common}>
-          <path d={CAP} />
-          <path d="M62 58 L78 28 L94 56 L108 24 L122 56 L136 24 L150 56 L166 28 L180 58 Z" />
-        </g>
+        <path
+          d="M54 116 L54 66 L66 40 L80 60 L92 32 L106 58 L120 28 L134 58 L148 32 L162 60 L174 40 L184 66 L184 116 C172 100 148 92 120 92 C92 92 68 100 54 116 Z"
+          {...common}
+        />
       )
     default:
       return <path d={CAP} {...common} />
@@ -297,7 +289,7 @@ export default function Avatar({ config = {}, size = 200, ring = false, classNam
   const skin = skinHex(config.skin)
   const hair = hairColorHex(config.hairColor)
   const shirt = shirtHex(config.shirt)
-  const hairStyle = config.hair || 'swoosh'
+  const hairStyle = config.hair || 'short'
 
   return (
     <svg
@@ -311,15 +303,15 @@ export default function Avatar({ config = {}, size = 200, ring = false, classNam
     >
       {ring && <circle cx="120" cy="120" r="118" fill="#fff" stroke="rgba(0,0,0,0.06)" strokeWidth="3" />}
 
+      {/* hair behind the body (long hair drapes behind the shoulders) */}
+      <HairBack style={hairStyle} c={hair} />
+
       {/* body / shoulders */}
       <path d="M52 240 C52 196 86 178 120 178 C154 178 188 196 188 240 Z" fill={shirt} stroke={OUTLINE} strokeWidth="2" />
       <path d="M120 178 C100 178 84 184 72 196 C92 190 148 190 168 196 C156 184 140 178 120 178 Z" fill={shade(shirt, 0.12)} />
 
       {/* neck */}
       <rect x="106" y="158" width="28" height="30" rx="12" fill={shade(skin, 0.08)} />
-
-      {/* hair behind head */}
-      <HairBack style={hairStyle} c={hair} />
 
       {/* ears */}
       <circle cx="60" cy="120" r="13" fill={skin} stroke={OUTLINE} strokeWidth="2" />
