@@ -5,6 +5,9 @@ import { coinsFromWeek, makeEvent, weekKey } from './economy.js'
 
 const KEY = 'behaviour-buddies-v1'
 
+// Shown to a child when a week goes net-negative. The grown-up can reword it.
+export const DEFAULT_CONSEQUENCE = 'you might lose a toy or some screen time'
+
 function load() {
   try {
     const raw = localStorage.getItem(KEY)
@@ -77,6 +80,7 @@ export function StoreProvider({ children }) {
   const [state, setState] = useState(() => {
     const s = load()
     s.children = (s.children || []).map(migrateChild)
+    s.settings = { pin: null, consequence: DEFAULT_CONSEQUENCE, ...(s.settings || {}) }
     for (const c of s.children) runPayouts(c)
     save(s)
     return s
@@ -184,27 +188,32 @@ export function StoreProvider({ children }) {
       },
       // Pay out this week's coins now. Pays only what has not already been paid,
       // so a grown-up can pay out as often as they like (even twice in a day) and
-      // each child only ever banks the coins they have newly earned.
+      // each child only ever banks the coins they have newly earned. Returns the
+      // number of coins added (computed up front so the caller always gets it).
       endWeekNow(id) {
-        let added = 0
+        const c = find(id)
+        if (!c) return 0
+        const wk = weekKey()
+        const owed = coinsFromWeek(c.events, wk) - ((c.paidByWeek || {})[wk] || 0)
+        if (owed <= 0) return 0
         update((s) => {
-          const c = s.children.find((x) => x.id === id)
-          if (!c) return
-          const wk = weekKey()
-          const paid = { ...(c.paidByWeek || {}) }
-          const owed = coinsFromWeek(c.events, wk) - (paid[wk] || 0)
-          if (owed > 0) {
-            c.coins += owed
-            paid[wk] = (paid[wk] || 0) + owed
-            c.paidByWeek = paid
-            added = owed
-          }
+          const ch = s.children.find((x) => x.id === id)
+          if (!ch) return
+          const paid = { ...(ch.paidByWeek || {}) }
+          paid[wk] = (paid[wk] || 0) + owed
+          ch.paidByWeek = paid
+          ch.coins += owed
         })
-        return added
+        return owed
       },
       setPin(pin) {
         update((s) => {
           s.settings = { ...s.settings, pin: pin || null }
+        })
+      },
+      setConsequence(text) {
+        update((s) => {
+          s.settings = { ...s.settings, consequence: text }
         })
       },
       resetAll() {
